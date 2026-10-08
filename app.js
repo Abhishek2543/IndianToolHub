@@ -125,16 +125,21 @@ function openTool(type) {
   }
 
   if(type==="hindi") html=`
-<h2>⌨️ Hindi Typing</h2>
-<p>Type in Hindi using your keyboard.</p>
+<h2>⌨️ English to Hindi Typing</h2>
+<p>English letters में लिखें और Hindi में बदलें।</p>
 
 <div class="form">
-<textarea id="hindiText"
-placeholder="यहाँ हिंदी में लिखें..."
-style="width:100%;min-height:180px;padding:12px;font-size:18px;"></textarea>
+<textarea id="romanHindi"
+placeholder="Type: mera naam abhishek hai"
+style="width:100%;min-height:160px;padding:12px;font-size:18px;"></textarea>
 
-<button onclick="copyHindi()">📋 Copy Text</button>
-<button onclick="downloadHindi()">⬇️ Download TXT</button>
+<button onclick="convertHindi()">🔄 Convert to Hindi</button>
+<button onclick="copyHindi()">📋 Copy</button>
+<button onclick="downloadHindi()">⬇️ Download</button>
+</div>
+
+<div id="hindiOutput"
+style="margin-top:15px;padding:15px;font-size:20px;background:#f5f5f5;border-radius:10px;">
 </div>
 
 <div id="result"></div>`;
@@ -353,4 +358,89 @@ async function createPDF() {
   pdf.save("IndianToolHub-JPG-to-PDF.pdf");
 
   out("PDF created successfully! ✅");
+}
+function convertHindi(){
+  let text=document.getElementById("romanHindi").value.toLowerCase();
+
+  const words={
+    "mera":"मेरा",
+    "meri":"मेरी",
+    "mere":"मेरे",
+    "naam":"नाम",
+    "hai":"है",
+    "hain":"हैं",
+    "main":"मैं",
+    "mai":"मैं",
+    "aap":"आप",
+    "tum":"तुम",
+    "hum":"हम",
+    "ka":"का",
+    "ki":"की",
+    "ke":"के",
+    "ko":"को",
+    "se":"से",
+    "me":"में",
+    "mein":"में",
+    "par":"पर",
+    "aur":"और",
+    "ya":"या",
+    "bhi":"भी",
+    "ye":"ये",
+    "yah":"यह",
+    "woh":"वह",
+    "kya":"क्या",
+    "kyun":"क्यों",
+    "kaise":"कैसे",
+    "kab":"कब",
+    "kahan":"कहाँ",
+    "achha":"अच्छा",
+    "accha":"अच्छा",
+    "bahut":"बहुत",
+    "dhanyavad":"धन्यवाद",
+    "shukriya":"शुक्रिया",
+    "pyaar":"प्यार",
+    "dost":"दोस्त",
+    "ghar":"घर",
+    "paani":"पानी",
+    "khana":"खाना",
+    "naam":"नाम"
+  };
+
+  text=text.split(/\s+/).map(word=>{
+    return words[word] || word;
+  }).join(" ");
+
+  document.getElementById("hindiOutput").textContent=text;
+}
+
+function copyHindi(){
+  const text=document.getElementById("hindiOutput").textContent;
+
+  if(!text){
+    return out("पहले Hindi text बनाएं।");
+  }
+
+  navigator.clipboard.writeText(text);
+  out("Hindi text copied! ✅");
+}
+
+function downloadHindi(){
+  const text=document.getElementById("hindiOutput").textContent;
+
+  if(!text){
+    return out("पहले Hindi text बनाएं।");
+  }
+
+  const blob=new Blob([text],{
+    type:"text/plain;charset=utf-8"
+  });
+
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+
+  a.href=url;
+  a.download="hindi-text.txt";
+  a.click();
+
+  URL.revokeObjectURL(url);
 }
