@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="IndiaToolHub - free online calculators and useful tools for India.">
+<title>IndiaToolHub - Free Online Tools for India</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="header">
+  <div class="wrap nav">
+    <a class="logo" href="#">India<span>Tool</span>Hub</a>
+    <nav>
+      <a href="#calculators">Calculators</a>
+      <a href="#tools">Tools</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <select id="lang" aria-label="Language">
+      <option value="en">English</option><option value="hi">हिन्दी</option><option value="gu">ગુજરાતી</option>
+    </select>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">🇮🇳 Free • Fast • Mobile Friendly</p>
+    <h1 id="heroTitle">Useful online tools, made simple.</h1>
+    <p id="heroText">Calculate, convert and get everyday tasks done quickly — free on IndiaToolHub.</p>
+    <div class="search"><input id="search" placeholder="Search a tool…"><span>⌕</span></div>
+  </div>
+</section>
+
+<section class="wrap section" id="calculators">
+  <div class="section-head"><div><p class="eyebrow">Popular</p><h2>Calculators</h2></div></div>
+  <div class="grid" id="calculatorGrid">
+    <article class="card tool-card" data-name="age calculator">
+      <div class="icon">🎂</div><h3>Age Calculator</h3><p>Find your exact age from your date of birth.</p><button onclick="openTool('age')">Use tool →</button>
+    </article>
+    <article class="card tool-card" data-name="emi calculator">
+      <div class="icon">💰</div><h3>EMI Calculator</h3><p>Estimate monthly loan payments and total interest.</p><button onclick="openTool('emi')">Use tool →</button>
+    </article>
+    <article class="card tool-card" data-name="percentage calculator">
+      <div class="icon">％</div><h3>Percentage Calculator</h3><p>Calculate percentages quickly and easily.</p><button onclick="openTool('percent')">Use tool →</button>
+    </article>
+    <article class="card tool-card" data-name="gst calculator">
+      <div class="icon">🧾</div><h3>GST Calculator</h3><p>Add or remove GST from an amount.</p><button onclick="openTool('gst')">Use tool →</button>
+    </article>
+    <article class="card tool-card" data-name="discount calculator">
+      <div class="icon">🏷️</div><h3>Discount Calculator</h3><p>Calculate sale price and savings.</p><button onclick="openTool('discount')">Use tool →</button>
+    </article>
+    <article class="card tool-card" data-name="bmi calculator">
+      <div class="icon">⚖️</div><h3>BMI Calculator</h3><p>Calculate BMI using height and weight.</p><button onclick="openTool('bmi')">Use tool →</button>
+    </article>
+  </div>
+</section>
+
+<section class="wrap section" id="tools">
+  <div class="section-head"><div><p class="eyebrow">More coming soon</p><h2>Useful Tools</h2></div></div>
+  <div class="grid">
+    <article class="card"><div class="icon">🖼️</div><h3>Image Compressor</h3><p>Compress images for websites and sharing.</p><span class="badge">Coming soon</span></article>
+    <article class="card"><div class="icon">📄</div><h3>JPG to PDF</h3><p>Convert images into a PDF document.</p><span class="badge">Coming soon</span></article>
+    <article class="card"><div class="icon">⌨️</div><h3>Hindi Typing</h3><p>Type Hindi easily online.</p><span class="badge">Coming soon</span></article>
+    <article class="card"><div class="icon">ગુજરાતી</div><h3>Gujarati Typing</h3><p>Type Gujarati online with ease.</p><span class="badge">Coming soon</span></article>
+  </div>
+</section>
+
+<section class="wrap section faq" id="faq">
+<h2>Frequently Asked Questions</h2>
+<details><summary>Are the tools free?</summary><p>Yes. The MVP tools on IndiaToolHub are free to use.</p></details>
+<details><summary>Does IndiaToolHub work on mobile?</summary><p>Yes. The layout is designed for phones, tablets and desktops.</p></details>
+<details><summary>Can more tools be added?</summary><p>Yes. The site is structured so PDF, image, finance and language tools can be added later.</p></details>
+</section>
+</main>
+
+<div class="modal" id="modal" hidden>
+<div class="modal-box"><button class="close" onclick="closeTool()">×</button><div id="toolContent"></div></div>
+</div>
+<footer><div class="wrap">© 2026 IndiaToolHub · Free online tools for India</div></footer>
+<script src="assets/app.js"></script>
+</body>
+</html>
