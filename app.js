@@ -124,6 +124,22 @@ function openTool(type) {
       <div id="result"></div>`;
   }
 
+  if(type==="hindi") html=`
+<h2>⌨️ Hindi Typing</h2>
+<p>Type in Hindi using your keyboard.</p>
+
+<div class="form">
+<textarea id="hindiText"
+placeholder="यहाँ हिंदी में लिखें..."
+style="width:100%;min-height:180px;padding:12px;font-size:18px;"></textarea>
+
+<button onclick="copyHindi()">📋 Copy Text</button>
+<button onclick="downloadHindi()">⬇️ Download TXT</button>
+</div>
+
+<div id="result"></div>`;
+}
+
   content.innerHTML = html;
   modal.hidden = false;
 }
