@@ -822,6 +822,12 @@ function romanGujaratiToGujarati(word) {
 
 const gujaratiWords = {
   maru: "મારું",
+// ===============================
+// GUJARATI TYPING
+// ===============================
+
+const gujaratiWords = {
+  maru: "મારું",
   maaru: "મારું",
   naam: "નામ",
   che: "છે",
@@ -900,7 +906,6 @@ const gujaratiWords = {
 };
 
 function convertGujarati() {
-
   const input = document
     .getElementById("romanGujarati")
     .value
@@ -915,7 +920,8 @@ function convertGujarati() {
     .split(/\s+/)
     .map(function(word) {
 
-      const punctuation = word.match(/[.,!?;:]+$/);
+      const punctuation =
+        word.match(/[.,!?;:]+$/);
 
       const clean = word
         .toLowerCase()
@@ -930,15 +936,16 @@ function convertGujarati() {
     })
     .join(" ");
 
-  document.getElementById("gujaratiOutput").textContent = result;
+  document.getElementById("gujaratiOutput").textContent =
+    result;
 }
 
 function copyGujarati() {
 
-  const output =
-    document.getElementById("gujaratiOutput");
-
-  const text = output.textContent.trim();
+  const text =
+    document.getElementById("gujaratiOutput")
+      .textContent
+      .trim();
 
   if (!text) {
     return out("પહેલા Gujarati text બનાવો.");
@@ -982,9 +989,7 @@ function downloadGujarati() {
     "IndiaToolHub-Gujarati-Text.txt";
 
   document.body.appendChild(a);
-
   a.click();
-
   document.body.removeChild(a);
 
   URL.revokeObjectURL(url);
