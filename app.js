@@ -7,6 +7,20 @@ if(type==="percent") html=`<h2>％ Percentage Calculator</h2><div class="form"><
 if(type==="gst") html=`<h2>🧾 GST Calculator</h2><div class="form"><label>Amount (₹)<input id="amt" type="number" value="1000"></label><label>GST rate (%)<input id="gst" type="number" value="18"></label><button onclick="calcGST()">Calculate</button></div><div id="result"></div>`;
 if(type==="discount") html=`<h2>🏷️ Discount Calculator</h2><div class="form"><label>Original price (₹)<input id="price" type="number" value="1000"></label><label>Discount (%)<input id="disc" type="number" value="20"></label><button onclick="calcDiscount()">Calculate</button></div><div id="result"></div>`;
 if(type==="bmi") html=`<h2>⚖️ BMI Calculator</h2><div class="form"><label>Weight (kg)<input id="weight" type="number" value="70"></label><label>Height (cm)<input id="height" type="number" value="170"></label><button onclick="calcBMI()">Calculate BMI</button></div><div id="result"></div>`;
+  if(type==="image") html=`<h2>🖼️ Image Compressor</h2>
+<p>Select an image and choose compression quality.</p>
+<div class="form">
+<label>Select image
+<input id="imageFile" type="file" accept="image/*">
+</label>
+<label>Quality (%)
+<input id="imageQuality" type="range" min="10" max="100" value="70"
+oninput="document.getElementById('qualityValue').textContent=this.value+'%'">
+</label>
+<p>Quality: <b id="qualityValue">70%</b></p>
+<button onclick="compressImage()">Compress Image</button>
+</div>
+<div id="result"></div>`;
 content.innerHTML=html; modal.hidden=false;
 }
 function closeTool(){modal.hidden=true}
