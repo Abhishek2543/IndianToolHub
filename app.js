@@ -1,199 +1,385 @@
+// =====================================================
+// IndiaToolHub - Main JavaScript
+// =====================================================
+
 const modal = document.getElementById("modal");
 const content = document.getElementById("toolContent");
 
+// =====================================================
+// OPEN TOOL
+// =====================================================
+
 function openTool(type) {
+
   let html = "";
 
+  // ---------------- AGE ----------------
   if (type === "age") {
     html = `
       <h2>🎂 Age Calculator</h2>
+
       <div class="form">
-        <label>Date of birth
-          <input id="dob" type="date">
-        </label>
-        <button onclick="calcAge()">Calculate Age</button>
+        <label>Date of Birth</label>
+        <input id="dob" type="date">
+
+        <button onclick="calcAge()">
+          Calculate Age
+        </button>
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "emi") {
+  // ---------------- EMI ----------------
+  else if (type === "emi") {
     html = `
       <h2>💰 EMI Calculator</h2>
+
       <div class="form">
-        <label>Loan amount (₹)
-          <input id="loan" type="number" value="500000">
-        </label>
-        <label>Annual interest (%)
-          <input id="rate" type="number" value="8.5">
-        </label>
-        <label>Tenure (years)
-          <input id="years" type="number" value="5">
-        </label>
-        <button onclick="calcEMI()">Calculate EMI</button>
+
+        <label>Loan Amount (₹)</label>
+        <input id="loan" type="number" value="500000">
+
+        <label>Annual Interest (%)</label>
+        <input id="rate" type="number" value="8.5">
+
+        <label>Tenure (Years)</label>
+        <input id="years" type="number" value="5">
+
+        <button onclick="calcEMI()">
+          Calculate EMI
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "percent") {
+  // ---------------- PERCENTAGE ----------------
+  else if (type === "percent") {
     html = `
       <h2>％ Percentage Calculator</h2>
+
       <div class="form">
-        <label>Percentage
-          <input id="p" type="number" value="20">
-        </label>
-        <label>Number
-          <input id="n" type="number" value="500">
-        </label>
-        <button onclick="calcPercent()">Calculate</button>
+
+        <label>Percentage (%)</label>
+        <input id="p" type="number" value="20">
+
+        <label>Number</label>
+        <input id="n" type="number" value="500">
+
+        <button onclick="calcPercent()">
+          Calculate
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "gst") {
+  // ---------------- GST ----------------
+  else if (type === "gst") {
     html = `
       <h2>🧾 GST Calculator</h2>
+
       <div class="form">
-        <label>Amount (₹)
-          <input id="amt" type="number" value="1000">
-        </label>
-        <label>GST (%)
-          <input id="gst" type="number" value="18">
-        </label>
-        <button onclick="calcGST()">Calculate</button>
+
+        <label>Amount (₹)</label>
+        <input id="amt" type="number" value="1000">
+
+        <label>GST (%)</label>
+        <input id="gst" type="number" value="18">
+
+        <button onclick="calcGST()">
+          Calculate
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "discount") {
+  // ---------------- DISCOUNT ----------------
+  else if (type === "discount") {
     html = `
       <h2>🏷️ Discount Calculator</h2>
+
       <div class="form">
-        <label>Original price (₹)
-          <input id="price" type="number" value="1000">
-        </label>
-        <label>Discount (%)
-          <input id="disc" type="number" value="20">
-        </label>
-        <button onclick="calcDiscount()">Calculate</button>
+
+        <label>Original Price (₹)</label>
+        <input id="price" type="number" value="1000">
+
+        <label>Discount (%)</label>
+        <input id="disc" type="number" value="20">
+
+        <button onclick="calcDiscount()">
+          Calculate
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "bmi") {
+  // ---------------- BMI ----------------
+  else if (type === "bmi") {
     html = `
       <h2>⚖️ BMI Calculator</h2>
+
       <div class="form">
-        <label>Weight (kg)
-          <input id="weight" type="number" value="70">
-        </label>
-        <label>Height (cm)
-          <input id="height" type="number" value="170">
-        </label>
-        <button onclick="calcBMI()">Calculate BMI</button>
+
+        <label>Weight (kg)</label>
+        <input id="weight" type="number" value="70">
+
+        <label>Height (cm)</label>
+        <input id="height" type="number" value="170">
+
+        <button onclick="calcBMI()">
+          Calculate BMI
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "image") {
+  // ---------------- IMAGE COMPRESSOR ----------------
+  else if (type === "image") {
     html = `
       <h2>🖼️ Image Compressor</h2>
+
       <div class="form">
-        <label>Select image
-          <input id="imageFile" type="file" accept="image/*">
-        </label>
-        <label>Quality (%)
-          <input id="imageQuality" type="range"
-                 min="10" max="100" value="70"
-                 oninput="qualityValue.textContent=this.value+'%'">
-        </label>
-        <p>Quality: <b id="qualityValue">70%</b></p>
-        <button onclick="compressImage()">Compress Image</button>
+
+        <label>Select Image</label>
+        <input
+          id="imageFile"
+          type="file"
+          accept="image/*"
+        >
+
+        <label>Quality</label>
+
+        <input
+          id="imageQuality"
+          type="range"
+          min="10"
+          max="100"
+          value="70"
+          oninput="
+            document.getElementById('qualityValue').textContent =
+            this.value + '%';
+          "
+        >
+
+        <p>
+          Quality:
+          <b id="qualityValue">70%</b>
+        </p>
+
+        <button onclick="compressImage()">
+          Compress Image
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if (type === "pdf") {
+  // ---------------- JPG TO PDF ----------------
+  else if (type === "pdf") {
     html = `
       <h2>📄 JPG to PDF</h2>
+
       <div class="form">
-        <label>Select images
-          <input id="pdfFiles" type="file" accept="image/*" multiple>
-        </label>
-        <button onclick="createPDF()">Create PDF</button>
+
+        <label>Select Images</label>
+
+        <input
+          id="pdfFiles"
+          type="file"
+          accept="image/*"
+          multiple
+        >
+
+        <button onclick="createPDF()">
+          Create PDF
+        </button>
+
       </div>
-      <div id="result"></div>`;
+
+      <div id="result"></div>
+    `;
   }
 
-  if(type==="hindi") html=`
-<h2>⌨️ English to Hindi Typing</h2>
-<p>English letters में लिखें और Hindi में बदलें।</p>
+  // ---------------- HINDI ----------------
+  else if (type === "hindi") {
+    html = `
+      <h2>⌨️ English to Hindi Typing</h2>
 
-<div class="form">
-<textarea id="romanHindi"
-placeholder="Type: mera naam abhishek hai"
-style="width:100%;min-height:160px;padding:12px;font-size:18px;"></textarea>
+      <p>
+        English letters में लिखें और Hindi में बदलें।
+      </p>
 
-<button onclick="convertHindi()">🔄 Convert to Hindi</button>
-<button onclick="copyHindi()">📋 Copy</button>
-<button onclick="downloadHindi()">⬇️ Download</button>
-</div>
+      <div class="form">
 
-<div id="hindiOutput"
-style="margin-top:15px;padding:15px;font-size:20px;background:#f5f5f5;border-radius:10px;">
-</div>
+        <textarea
+          id="romanHindi"
+          placeholder="Type: mera naam abhishek hai"
+          style="
+            width:100%;
+            min-height:160px;
+            padding:12px;
+            font-size:18px;
+          "
+        ></textarea>
 
-<div id="result"></div>`;
+        <button onclick="convertHindi()">
+          🔄 Convert to Hindi
+        </button>
 
-  if(type==="gujarati") html=`
-<h2>⌨️ English to Gujarati Typing</h2>
+        <button onclick="copyHindi()">
+          📋 Copy
+        </button>
 
-<p>English letters માં લખો અને Gujarati માં બદલો.</p>
+        <button onclick="downloadHindi()">
+          ⬇️ Download
+        </button>
 
-<div class="form">
+      </div>
 
-<textarea id="romanGujarati"
-placeholder="Type: maru naam abhishek che"
-style="width:100%;min-height:160px;padding:12px;font-size:18px;"></textarea>
+      <div
+        id="hindiOutput"
+        style="
+          margin-top:15px;
+          padding:15px;
+          font-size:20px;
+          background:#f5f5f5;
+          border-radius:10px;
+          min-height:50px;
+        "
+      ></div>
 
-<button onclick="convertGujarati()">🔄 Convert to Gujarati</button>
-<button onclick="copyGujarati()">📋 Copy</button>
-<button onclick="downloadGujarati()">⬇️ Download</button>
+      <div id="result"></div>
+    `;
+  }
 
-</div>
+  // ---------------- GUJARATI ----------------
+  else if (type === "gujarati") {
+    html = `
+      <h2>⌨️ English to Gujarati Typing</h2>
 
-<div id="gujaratiOutput"
-style="margin-top:15px;padding:15px;font-size:22px;background:#f5f5f5;border-radius:10px;">
-</div>
+      <p>
+        English letters માં લખો અને Gujarati માં બદલો.
+      </p>
 
-<div id="result"></div>`;
+      <div class="form">
+
+        <textarea
+          id="romanGujarati"
+          placeholder="Type: maru naam abhishek che"
+          style="
+            width:100%;
+            min-height:160px;
+            padding:12px;
+            font-size:18px;
+          "
+        ></textarea>
+
+        <button onclick="convertGujarati()">
+          🔄 Convert to Gujarati
+        </button>
+
+        <button onclick="copyGujarati()">
+          📋 Copy
+        </button>
+
+        <button onclick="downloadGujarati()">
+          ⬇️ Download
+        </button>
+
+      </div>
+
+      <div
+        id="gujaratiOutput"
+        style="
+          margin-top:15px;
+          padding:15px;
+          font-size:22px;
+          background:#f5f5f5;
+          border-radius:10px;
+          min-height:50px;
+        "
+      ></div>
+
+      <div id="result"></div>
+    `;
+  }
+
   content.innerHTML = html;
   modal.hidden = false;
 }
+
+
+// =====================================================
+// CLOSE TOOL
+// =====================================================
 
 function closeTool() {
   modal.hidden = true;
 }
 
+
+// =====================================================
+// RESULT MESSAGE
+// =====================================================
+
 function out(message) {
-  document.getElementById("result").innerHTML =
-    '<div class="result">' + message + '</div>';
+
+  const result = document.getElementById("result");
+
+  if (result) {
+    result.innerHTML =
+      '<div class="result">' + message + '</div>';
+  }
 }
 
-function calcAge() {
-  const dob = new Date(document.getElementById("dob").value);
 
-  if (isNaN(dob)) {
+// =====================================================
+// AGE CALCULATOR
+// =====================================================
+
+function calcAge() {
+
+  const value =
+    document.getElementById("dob").value;
+
+  if (!value) {
     out("Please select your date of birth.");
     return;
   }
 
+  const dob = new Date(value);
   const today = new Date();
-  let years = today.getFullYear() - dob.getFullYear();
-  let months = today.getMonth() - dob.getMonth();
-  let days = today.getDate() - dob.getDate();
+
+  let years =
+    today.getFullYear() - dob.getFullYear();
+
+  let months =
+    today.getMonth() - dob.getMonth();
+
+  let days =
+    today.getDate() - dob.getDate();
 
   if (days < 0) {
     months--;
+
     days += new Date(
       today.getFullYear(),
       today.getMonth(),
@@ -206,82 +392,212 @@ function calcAge() {
     months += 12;
   }
 
-  out(`<b>${years} years, ${months} months, ${days} days</b>`);
+  out(`
+    <b>Age: ${years} years, ${months} months, ${days} days</b>
+  `);
 }
 
+
+// =====================================================
+// EMI CALCULATOR
+// =====================================================
+
 function calcEMI() {
-  const P = Number(document.getElementById("loan").value);
-  const annualRate = Number(document.getElementById("rate").value);
-  const years = Number(document.getElementById("years").value);
+
+  const P =
+    Number(document.getElementById("loan").value);
+
+  const annualRate =
+    Number(document.getElementById("rate").value);
+
+  const years =
+    Number(document.getElementById("years").value);
+
+  if (P <= 0 || years <= 0 || annualRate < 0) {
+    out("Please enter valid values.");
+    return;
+  }
 
   const r = annualRate / 1200;
   const n = years * 12;
 
-  const emi = r
-    ? P * r * Math.pow(1 + r, n) /
-      (Math.pow(1 + r, n) - 1)
-    : P / n;
+  let emi;
 
-  out(
-    `<b>Monthly EMI: ₹${emi.toFixed(2)}</b><br>
-     Total payment: ₹${(emi * n).toFixed(2)}<br>
-     Total interest: ₹${(emi * n - P).toFixed(2)}`
-  );
+  if (r === 0) {
+    emi = P / n;
+  } else {
+    emi =
+      P *
+      r *
+      Math.pow(1 + r, n) /
+      (Math.pow(1 + r, n) - 1);
+  }
+
+  const total =
+    emi * n;
+
+  const interest =
+    total - P;
+
+  out(`
+    <b>Monthly EMI: ₹${emi.toFixed(2)}</b>
+    <br><br>
+
+    Total Payment:
+    ₹${total.toFixed(2)}
+
+    <br>
+
+    Total Interest:
+    ₹${interest.toFixed(2)}
+  `);
 }
+
+
+// =====================================================
+// PERCENTAGE
+// =====================================================
 
 function calcPercent() {
-  const p = Number(document.getElementById("p").value);
-  const n = Number(document.getElementById("n").value);
 
-  out(`<b>${(p / 100 * n).toFixed(2)}</b>`);
+  const p =
+    Number(document.getElementById("p").value);
+
+  const n =
+    Number(document.getElementById("n").value);
+
+  if (isNaN(p) || isNaN(n)) {
+    out("Please enter valid numbers.");
+    return;
+  }
+
+  const result =
+    (p / 100) * n;
+
+  out(`
+    <b>${p}% of ${n} = ${result.toFixed(2)}</b>
+  `);
 }
+
+
+// =====================================================
+// GST
+// =====================================================
 
 function calcGST() {
-  const amount = Number(document.getElementById("amt").value);
-  const rate = Number(document.getElementById("gst").value);
 
-  const gst = amount * rate / 100;
+  const amount =
+    Number(document.getElementById("amt").value);
 
-  out(
-    `<b>GST: ₹${gst.toFixed(2)}</b><br>
-     Total: ₹${(amount + gst).toFixed(2)}`
-  );
+  const rate =
+    Number(document.getElementById("gst").value);
+
+  if (amount < 0 || rate < 0) {
+    out("Please enter valid values.");
+    return;
+  }
+
+  const gst =
+    amount * rate / 100;
+
+  const total =
+    amount + gst;
+
+  out(`
+    <b>GST: ₹${gst.toFixed(2)}</b>
+    <br><br>
+    Total Amount:
+    ₹${total.toFixed(2)}
+  `);
 }
+
+
+// =====================================================
+// DISCOUNT
+// =====================================================
 
 function calcDiscount() {
-  const price = Number(document.getElementById("price").value);
-  const discount = Number(document.getElementById("disc").value);
 
-  const saving = price * discount / 100;
-  const finalPrice = price - saving;
+  const price =
+    Number(document.getElementById("price").value);
 
-  out(
-    `<b>Sale price: ₹${finalPrice.toFixed(2)}</b><br>
-     You save: ₹${saving.toFixed(2)}`
-  );
+  const discount =
+    Number(document.getElementById("disc").value);
+
+  if (price < 0 || discount < 0) {
+    out("Please enter valid values.");
+    return;
+  }
+
+  const saving =
+    price * discount / 100;
+
+  const finalPrice =
+    price - saving;
+
+  out(`
+    <b>Sale Price: ₹${finalPrice.toFixed(2)}</b>
+    <br><br>
+    You Save:
+    ₹${saving.toFixed(2)}
+  `);
 }
 
-function calcBMI() {
-  const weight = Number(document.getElementById("weight").value);
-  const height = Number(document.getElementById("height").value) / 100;
 
-  const bmi = weight / (height * height);
+// =====================================================
+// BMI
+// =====================================================
+
+function calcBMI() {
+
+  const weight =
+    Number(document.getElementById("weight").value);
+
+  const heightCm =
+    Number(document.getElementById("height").value);
+
+  if (weight <= 0 || heightCm <= 0) {
+    out("Please enter valid weight and height.");
+    return;
+  }
+
+  const height =
+    heightCm / 100;
+
+  const bmi =
+    weight / (height * height);
 
   let category;
 
-  if (bmi < 18.5) category = "Underweight";
-  else if (bmi < 25) category = "Normal";
-  else if (bmi < 30) category = "Overweight";
-  else category = "Obesity";
+  if (bmi < 18.5) {
+    category = "Underweight";
+  } else if (bmi < 25) {
+    category = "Normal";
+  } else if (bmi < 30) {
+    category = "Overweight";
+  } else {
+    category = "Obesity";
+  }
 
-  out(
-    `<b>BMI: ${bmi.toFixed(1)}</b><br>
-     Category: ${category}`
-  );
+  out(`
+    <b>BMI: ${bmi.toFixed(1)}</b>
+    <br><br>
+    Category: ${category}
+  `);
 }
 
+
+// =====================================================
+// IMAGE COMPRESSOR
+// =====================================================
+
 function compressImage() {
-  const file = document.getElementById("imageFile").files[0];
+
+  const input =
+    document.getElementById("imageFile");
+
+  const file =
+    input.files[0];
 
   if (!file) {
     out("Please select an image first.");
@@ -289,38 +605,98 @@ function compressImage() {
   }
 
   const quality =
-    Number(document.getElementById("imageQuality").value) / 100;
+    Number(
+      document.getElementById("imageQuality").value
+    ) / 100;
 
-  const img = new Image();
+  const img =
+    new Image();
+
+  const sourceUrl =
+    URL.createObjectURL(file);
 
   img.onload = function () {
-    const canvas = document.createElement("canvas");
 
-    canvas.width = img.width;
-    canvas.height = img.height;
+    const canvas =
+      document.createElement("canvas");
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
+    canvas.width =
+      img.width;
 
-    canvas.toBlob(function (blob) {
-      const url = URL.createObjectURL(blob);
+    canvas.height =
+      img.height;
 
-      out(`
-        <b>Compression complete! ✅</b><br><br>
-        Original: ${(file.size / 1024).toFixed(1)} KB<br>
-        Compressed: ${(blob.size / 1024).toFixed(1)} KB<br><br>
-        <a href="${url}" download="compressed-image.jpg">
-          <button>⬇️ Download Image</button>
-        </a>
-      `);
-    }, "image/jpeg", quality);
+    const ctx =
+      canvas.getContext("2d");
+
+    ctx.drawImage(
+      img,
+      0,
+      0
+    );
+
+    canvas.toBlob(
+      function(blob) {
+
+        if (!blob) {
+          out("Image compression failed.");
+          URL.revokeObjectURL(sourceUrl);
+          return;
+        }
+
+        const url =
+          URL.createObjectURL(blob);
+
+        out(`
+          <b>Compression Complete! ✅</b>
+          <br><br>
+
+          Original:
+          ${(file.size / 1024).toFixed(1)} KB
+
+          <br>
+
+          Compressed:
+          ${(blob.size / 1024).toFixed(1)} KB
+
+          <br><br>
+
+          <a
+            href="${url}"
+            download="IndianToolHub-compressed.jpg"
+          >
+            <button>⬇️ Download Image</button>
+          </a>
+        `);
+
+        URL.revokeObjectURL(sourceUrl);
+
+      },
+      "image/jpeg",
+      quality
+    );
   };
 
-  img.src = URL.createObjectURL(file);
+  img.onerror = function () {
+    out("Unable to read this image.");
+    URL.revokeObjectURL(sourceUrl);
+  };
+
+  img.src = sourceUrl;
 }
 
+
+// =====================================================
+// JPG TO PDF
+// =====================================================
+
 async function createPDF() {
-  const files = document.getElementById("pdfFiles").files;
+
+  const input =
+    document.getElementById("pdfFiles");
+
+  const files =
+    input.files;
 
   if (!files.length) {
     out("Please select at least one image.");
@@ -328,73 +704,512 @@ async function createPDF() {
   }
 
   if (!window.jspdf) {
-    out("PDF library is loading. Please try again.");
+    out("PDF library is not loaded. Please try again.");
     return;
   }
 
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("p", "mm", "a4");
+  try {
 
-  for (let i = 0; i < files.length; i++) {
-    const data = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    const { jsPDF } =
+      window.jspdf;
 
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
+    const pdf =
+      new jsPDF(
+        "p",
+        "mm",
+        "a4"
+      );
 
-      reader.readAsDataURL(files[i]);
-    });
+    for (
+      let i = 0;
+      i < files.length;
+      i++
+    ) {
 
-    const img = await new Promise((resolve, reject) => {
-      const image = new Image();
+      const data =
+        await readFileAsDataURL(
+          files[i]
+        );
 
-      image.onload = () => resolve(image);
-      image.onerror = reject;
+      const img =
+        await loadImage(data);
 
-      image.src = data;
-    });
+      const pageW = 210;
+      const pageH = 297;
+      const margin = 10;
 
-    const pageW = 210;
-    const pageH = 297;
-    const margin = 10;
+      let w =
+        img.width;
 
-    let w = img.width;
-    let h = img.height;
+      let h =
+        img.height;
 
-    const scale = Math.min(
-      (pageW - margin * 2) / w,
-      (pageH - margin * 2) / h,
-      1
+      const scale =
+        Math.min(
+          (pageW - margin * 2) / w,
+          (pageH - margin * 2) / h
+        );
+
+      w *= scale;
+      h *= scale;
+
+      const x =
+        (pageW - w) / 2;
+
+      const y =
+        (pageH - h) / 2;
+
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      const format =
+        files[i].type === "image/png"
+          ? "PNG"
+          : "JPEG";
+
+      pdf.addImage(
+        data,
+        format,
+        x,
+        y,
+        w,
+        h
+      );
+    }
+
+    pdf.save(
+      "IndiaToolHub-JPG-to-PDF.pdf"
     );
 
-    w *= scale;
-    h *= scale;
+    out("PDF created successfully! ✅");
 
-    const x = (pageW - w) / 2;
-    const y = (pageH - h) / 2;
+  } catch (error) {
 
-    if (i > 0) pdf.addPage();
+    console.error(error);
 
-    pdf.addImage(data, "JPEG", x, y, w, h);
+    out("PDF बनाने में समस्या हुई।");
   }
-
-  pdf.save("IndianToolHub-JPG-to-PDF.pdf");
-
-  out("PDF created successfully! ✅");
 }
-// ===============================
-// ADVANCED HINDI TYPING
-// ===============================
+
+
+function readFileAsDataURL(file) {
+
+  return new Promise(
+    function(resolve, reject) {
+
+      const reader =
+        new FileReader();
+
+      reader.onload =
+        function() {
+          resolve(reader.result);
+        };
+
+      reader.onerror =
+        function() {
+          reject(reader.error);
+        };
+
+      reader.readAsDataURL(file);
+    }
+  );
+}
+
+
+function loadImage(src) {
+
+  return new Promise(
+    function(resolve, reject) {
+
+      const img =
+        new Image();
+
+      img.onload =
+        function() {
+          resolve(img);
+        };
+
+      img.onerror =
+        function() {
+          reject(
+            new Error("Image loading failed")
+          );
+        };
+
+      img.src = src;
+    }
+  );
+}
+
+
+// =====================================================
+// HINDI DICTIONARY
+// =====================================================
 
 const hindiWords = {
-  mera:"मेरा", meri:"मेरी", mere:"मेरे",
-  naam:"नाम", hai:"है", hain:"हैं",
-  main:"मैं", mai:"मैं", mein:"में", me:"में",
-  aap:"आप", ap:"आप", tum:"तुम", hum:"हम",
-  ka:"का", ki:"की", ke:"के", ko:"को",
-  se:"से", par:"पर", aur:"और", or:"और",
-  ye:"ये", yah:"यह", woh:"वह", wo:"वो",
-  kya:"क्या", kyun:"क्यों", kyu:"क्यों",
+
+  mera: "मेरा",
+  meri: "मेरी",
+  mere: "मेरे",
+
+  naam: "नाम",
+
+  hai: "है",
+  hain: "हैं",
+
+  main: "मैं",
+  mai: "मैं",
+  mein: "में",
+  me: "में",
+
+  aap: "आप",
+  ap: "आप",
+
+  tum: "तुम",
+  hum: "हम",
+
+  ka: "का",
+  ki: "की",
+  ke: "के",
+  ko: "को",
+
+  se: "से",
+  par: "पर",
+
+  aur: "और",
+  or: "और",
+
+  ye: "ये",
+  yah: "यह",
+  yeh: "यह",
+
+  woh: "वह",
+  wo: "वो",
+
+  kya: "क्या",
+  kyun: "क्यों",
+  kyu: "क्यों",
+
+  kaise: "कैसे",
+  kab: "कब",
+  kahan: "कहाँ",
+
+  achha: "अच्छा",
+  accha: "अच्छा",
+  achhi: "अच्छी",
+  achche: "अच्छे",
+
+  bahut: "बहुत",
+  bilkul: "बिल्कुल",
+
+  dhanyavad: "धन्यवाद",
+  shukriya: "शुक्रिया",
+
+  pyaar: "प्यार",
+  pyar: "प्यार",
+
+  dost: "दोस्त",
+  dosti: "दोस्ती",
+
+  ghar: "घर",
+
+  paani: "पानी",
+  pani: "पानी",
+
+  khana: "खाना",
+  khaana: "खाना",
+
+  mujhe: "मुझे",
+  mujko: "मुझको",
+
+  tumhe: "तुम्हें",
+  aapko: "आपको",
+
+  hume: "हमें",
+  hame: "हमें",
+
+  nahi: "नहीं",
+  nahin: "नहीं",
+
+  haan: "हाँ",
+  han: "हाँ",
+
+  abhi: "अभी",
+  aaj: "आज",
+  kal: "कल",
+
+  subah: "सुबह",
+  shaam: "शाम",
+  raat: "रात",
+  din: "दिन",
+
+  bada: "बड़ा",
+  badi: "बड़ी",
+  bade: "बड़े",
+
+  chhota: "छोटा",
+  choti: "छोटी",
+
+  bahar: "बाहर",
+  andar: "अंदर",
+
+  upar: "ऊपर",
+  neeche: "नीचे",
+
+  samay: "समय",
+  waqt: "वक्त",
+
+  zindagi: "ज़िंदगी",
+  jindagi: "ज़िंदगी",
+
+  duniya: "दुनिया",
+
+  bharat: "भारत",
+  india: "इंडिया",
+  hindustan: "हिंदुस्तान",
+
+  bhagwan: "भगवान",
+  ram: "राम",
+  krishna: "कृष्ण",
+  shree: "श्री",
+
+  mata: "माता",
+  pita: "पिता",
+
+  maa: "माँ",
+  papa: "पापा",
+
+  bhai: "भाई",
+  behen: "बहन",
+
+  beta: "बेटा",
+  beti: "बेटी",
+
+  ladka: "लड़का",
+  ladki: "लड़की",
+
+  school: "स्कूल",
+  college: "कॉलेज",
+
+  kitab: "किताब",
+  kitaab: "किताब",
+
+  mobile: "मोबाइल",
+  phone: "फोन",
+
+  computer: "कंप्यूटर",
+  internet: "इंटरनेट",
+  website: "वेबसाइट",
+
+  paisa: "पैसा",
+  paise: "पैसे",
+
+  kaam: "काम",
+
+  kar: "कर",
+  karo: "करो",
+  karna: "करना",
+  karta: "करता",
+  karti: "करती",
+  karte: "करते",
+  kiya: "किया",
+
+  ja: "जा",
+  jao: "जाओ",
+  jaana: "जाना",
+
+  aana: "आना",
+  aao: "आओ",
+
+  jana: "जाना",
+
+  gaya: "गया",
+  gayi: "गई",
+  gaye: "गए",
+
+  aaya: "आया",
+  aayi: "आई",
+
+  bol: "बोल",
+  bolo: "बोलो",
+
+  baat: "बात",
+
+  sun: "सुन",
+  suno: "सुनो",
+
+  dekh: "देख",
+  dekho: "देखो",
+
+  likh: "लिख",
+  likho: "लिखो",
+
+  padh: "पढ़",
+  padho: "पढ़ो",
+
+  samajh: "समझ",
+  samjho: "समझो",
+
+  chahiye: "चाहिए",
+
+  sakta: "सकता",
+  sakti: "सकती",
+  sakte: "सकते",
+
+  hoga: "होगा",
+  hogi: "होगी",
+  honge: "होंगे",
+
+  tha: "था",
+  thi: "थी",
+  the: "थे",
+
+  ek: "एक",
+  do: "दो",
+  teen: "तीन",
+  char: "चार",
+  paanch: "पाँच",
+
+  apna: "अपना",
+  apni: "अपनी",
+  apne: "अपने",
+
+  sab: "सब",
+  sabhi: "सभी",
+
+  kuch: "कुछ",
+  koi: "कोई",
+
+  kaun: "कौन",
+
+  kiska: "किसका",
+
+  kitna: "कितना",
+  kitne: "कितने",
+  kitni: "कितनी",
+
+  kyunki: "क्योंकि",
+  lekin: "लेकिन",
+
+  agar: "अगर",
+  to: "तो",
+
+  jab: "जब",
+  tab: "तब",
+
+  bhi: "भी",
+  hi: "ही",
+
+  sirf: "सिर्फ",
+
+  phir: "फिर",
+
+  pehle: "पहले",
+  baad: "बाद",
+
+  saath: "साथ",
+  bina: "बिना",
+
+  liye: "लिए",
+  liya: "लिया",
+
+  dena: "देना",
+  lena: "लेना",
+  lelo: "लेलो",
+
+  thik: "ठीक",
+  theek: "ठीक",
+
+  sahi: "सही",
+  galat: "गलत",
+
+  zaroor: "ज़रूर",
+  jarur: "ज़रूर",
+  zaroori: "ज़रूरी"
+};
+
+
+// =====================================================
+// HINDI CONVERTER
+// =====================================================
+
+function convertHindi() {
+
+  const input =
+    document.getElementById("romanHindi")
+      .value
+      .trim();
+
+  if (!input) {
+
+    document.getElementById(
+      "hindiOutput"
+    ).textContent = "";
+
+    out("पहले English में कुछ लिखें।");
+
+    return;
+  }
+
+  const result =
+    input
+      .split(/\s+/)
+      .map(function(word) {
+
+        const punctuation =
+          word.match(/[.,!?;:]+$/);
+
+        const clean =
+          word
+            .toLowerCase()
+            .replace(/[.,!?;:]+$/, "");
+
+        const converted =
+          hindiWords[clean] || clean;
+
+        return converted +
+          (
+            punctuation
+              ? punctuation[0]
+              : ""
+          );
+
+      })
+      .join(" ");
+
+  document.getElementById(
+    "hindiOutput"
+  ).textContent = result;
+}
+
+
+// =====================================================
+// COPY HINDI
+// =====================================================
+
+function copyHindi() {
+
+  const text =
+    document.getElementById(
+      "hindiOutput"
+    ).textContent.trim();
+
+  if (!text) {
+    out("पहले Hindi text बनाएं।");
+    return;
+  }
+
+  navigator.clipboard.writeText(text)
+    .then(function() {
+
+      out("Hindi text copied! ✅");
+
+    })
+    .catch(function() {
+
+      out(
+        "Copy नहीं हो kya:"क्या", kyun:"क्यों", kyu:"क्यों",
   kaise:"कैसे", kab:"कब", kahan:"कहाँ",
   achha:"अच्छा", accha:"अच्छा",
   bahut:"बहुत", bilkul:"बिल्कुल",
