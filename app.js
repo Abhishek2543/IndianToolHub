@@ -84,3 +84,57 @@ async function compressImage(){
 
   img.src=URL.createObjectURL(file);
 }
+async function createPDF(){
+  const files=document.getElementById("pdfFiles").files;
+
+  if(!files.length){
+    return out("Please select at least one image.");
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf=new jsPDF("p","mm","a4");
+
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+
+    const data=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+    });
+
+    const img=await new Promise((resolve,reject)=>{
+      const image=new Image();
+      image.onload=()=>resolve(image);
+      image.onerror=reject;
+      image.src=data;
+    });
+
+    const pageW=210;
+    const pageH=297;
+    const margin=10;
+
+    let w=img.width;
+    let h=img.height;
+
+    const maxW=pageW-margin*2;
+    const maxH=pageH-margin*2;
+
+    const scale=Math.min(maxW/w,maxH/h,1);
+
+    w*=scale;
+    h*=scale;
+
+    const x=(pageW-w)/2;
+    const y=(pageH-h)/2;
+
+    if(i>0) pdf.addPage();
+
+    pdf.addImage(data,"JPEG",x,y,w,h);
+  }
+
+  pdf.save("IndianToolHub-JPG-to-PDF.pdf");
+
+  out("PDF created successfully! ✅");
+}
