@@ -359,72 +359,278 @@ async function createPDF() {
 
   out("PDF created successfully! ✅");
 }
-function convertHindi(){
-  let text=document.getElementById("romanHindi").value.toLowerCase();
+// ===============================
+// ADVANCED HINDI TYPING
+// ===============================
 
-  const words={
-    "mera":"मेरा",
-    "meri":"मेरी",
-    "mere":"मेरे",
-    "naam":"नाम",
-    "hai":"है",
-    "hain":"हैं",
-    "main":"मैं",
-    "mai":"मैं",
-    "aap":"आप",
-    "tum":"तुम",
-    "hum":"हम",
-    "ka":"का",
-    "ki":"की",
-    "ke":"के",
-    "ko":"को",
-    "se":"से",
-    "me":"में",
-    "mein":"में",
-    "par":"पर",
-    "aur":"और",
-    "ya":"या",
-    "bhi":"भी",
-    "ye":"ये",
-    "yah":"यह",
-    "woh":"वह",
-    "kya":"क्या",
-    "kyun":"क्यों",
-    "kaise":"कैसे",
-    "kab":"कब",
-    "kahan":"कहाँ",
-    "achha":"अच्छा",
-    "accha":"अच्छा",
-    "bahut":"बहुत",
-    "dhanyavad":"धन्यवाद",
-    "shukriya":"शुक्रिया",
-    "pyaar":"प्यार",
-    "dost":"दोस्त",
-    "ghar":"घर",
-    "paani":"पानी",
-    "khana":"खाना",
-    "naam":"नाम"
+const hindiWords = {
+  mera:"मेरा", meri:"मेरी", mere:"मेरे",
+  naam:"नाम", hai:"है", hain:"हैं",
+  main:"मैं", mai:"मैं", mein:"में", me:"में",
+  aap:"आप", ap:"आप", tum:"तुम", hum:"हम",
+  ka:"का", ki:"की", ke:"के", ko:"को",
+  se:"से", par:"पर", aur:"और", or:"और",
+  ye:"ये", yah:"यह", woh:"वह", wo:"वो",
+  kya:"क्या", kyun:"क्यों", kyu:"क्यों",
+  kaise:"कैसे", kab:"कब", kahan:"कहाँ",
+  achha:"अच्छा", accha:"अच्छा",
+  bahut:"बहुत", bilkul:"बिल्कुल",
+  dhanyavad:"धन्यवाद", shukriya:"शुक्रिया",
+  pyaar:"प्यार", pyar:"प्यार",
+  dost:"दोस्त", dosti:"दोस्ती",
+  ghar:"घर", paani:"पानी", pani:"पानी",
+  khana:"खाना", khaana:"खाना",
+  mujhe:"मुझे", mujko:"मुझको",
+  tumhe:"तुम्हें", aapko:"आपको",
+  hume:"हमें", hame:"हमें",
+  yeh:"यह", woh:"वह",
+  nahi:"नहीं", nahin:"नहीं",
+  haan:"हाँ", han:"हाँ",
+  abhi:"अभी", aaj:"आज", kal:"कल",
+  subah:"सुबह", shaam:"शाम",
+  raat:"रात", din:"दिन",
+  achhi:"अच्छी", achche:"अच्छे",
+  bada:"बड़ा", badi:"बड़ी", bade:"बड़े",
+  chhota:"छोटा", choti:"छोटी",
+  bahar:"बाहर", andar:"अंदर",
+  upar:"ऊपर", neeche:"नीचे",
+  samay:"समय", waqt:"वक्त",
+  zindagi:"ज़िंदगी", jindagi:"ज़िंदगी",
+  duniya:"दुनिया", bharat:"भारत",
+  india:"इंडिया", hindustan:"हिंदुस्तान",
+  bhagwan:"भगवान", ram:"राम",
+  krishna:"कृष्ण", shree:"श्री",
+  mata:"माता", pita:"पिता",
+  maa:"माँ", papa:"पापा",
+  bhai:"भाई", behen:"बहन",
+  beta:"बेटा", beti:"बेटी",
+  ladka:"लड़का", ladki:"लड़की",
+  school:"स्कूल", college:"कॉलेज",
+  kitab:"किताब", kitaab:"किताब",
+  mobile:"मोबाइल", phone:"फोन",
+  computer:"कंप्यूटर", internet:"इंटरनेट",
+  website:"वेबसाइट", paisa:"पैसा",
+  paise:"पैसे", kaam:"काम",
+  kar:"कर", karo:"करो", karna:"करना",
+  karta:"करता", karti:"करती",
+  karte:"करते", kiya:"किया",
+  ja:"जा", jao:"जाओ", jaana:"जाना",
+  aana:"आना", aao:"आओ",
+  jana:"जाना", gaya:"गया", gayi:"गई",
+  gaye:"गए", aaya:"आया", aayi:"आई",
+  bol:"बोल", bolo:"बोलो", baat:"बात",
+  sun:"सुन", suno:"सुनो",
+  dekh:"देख", dekho:"देखो",
+  likh:"लिख", likho:"लिखो",
+  padh:"पढ़", padho:"पढ़ो",
+  samajh:"समझ", samjho:"समझो",
+  chahiye:"चाहिए", sakta:"सकता",
+  sakti:"सकती", sakte:"सकते",
+  hoga:"होगा", hogi:"होगी",
+  honge:"होंगे", tha:"था",
+  thi:"थी", the:"थे",
+  ek:"एक", do:"दो", teen:"तीन",
+  char:"चार", paanch:"पाँच",
+  mera:"मेरा", apna:"अपना",
+  apni:"अपनी", apne:"अपने",
+  sab:"सब", sabhi:"सभी",
+  kuch:"कुछ", koi:"कोई",
+  kaun:"कौन", kiska:"किसका",
+  kitna:"कितना", kitne:"कितने",
+  kitni:"कितनी",
+  kyunki:"क्योंकि", lekin:"लेकिन",
+  agar:"अगर", to:"तो",
+  jab:"जब", tab:"तब",
+  bhi:"भी", hi:"ही",
+  sirf:"सिर्फ", phir:"फिर",
+  pehle:"पहले", baad:"बाद",
+  saath:"साथ", bina:"बिना",
+  liye:"लिए", liya:"लिया",
+  dena:"देना", dena:"देना",
+  lena:"लेना", lelo:"लेलो",
+  achha:"अच्छा", thik:"ठीक",
+  theek:"ठीक", sahi:"सही",
+  galat:"गलत", zaroor:"ज़रूर",
+  jarur:"ज़रूर", zaroori:"ज़रूरी"
+};
+
+
+// Roman → Hindi common patterns
+const hindiPatterns = [
+  ["ksh","क्ष"],
+  ["gya","ग्या"],
+  ["tra","त्र"],
+  ["shra","श्रा"],
+  ["shri","श्री"],
+  ["dnya","ज्ञ"],
+  ["gyan","ज्ञान"],
+  ["pra","प्र"],
+  ["bra","ब्र"],
+  ["kra","क्र"],
+  ["gra","ग्र"],
+  ["dra","द्र"],
+  ["kro","क्रो"],
+  ["kri","क्रि"],
+  ["sha","श"],
+  ["shi","शि"],
+  ["shu","शु"],
+  ["she","शे"],
+  ["sho","शो"]
+];
+
+function basicRomanToHindi(word){
+
+  if(hindiWords[word]){
+    return hindiWords[word];
+  }
+
+  let w = word;
+
+  // common combinations
+  hindiPatterns.forEach(function(pair){
+    w = w.split(pair[0]).join(pair[1]);
+  });
+
+  const map = {
+    "aa":"आ",
+    "ee":"ई",
+    "oo":"ऊ",
+    "ai":"ऐ",
+    "au":"औ",
+    "kh":"ख",
+    "gh":"घ",
+    "ch":"च",
+    "jh":"झ",
+    "th":"थ",
+    "dh":"ध",
+    "ph":"फ",
+    "bh":"भ",
+    "sh":"श",
+    "ng":"ङ",
+    "ny":"ञ",
+    "tt":"ट",
+    "dd":"ड",
+    "nn":"न",
+    "rr":"र",
+    "ll":"ल",
+
+    "a":"अ",
+    "b":"ब",
+    "c":"क",
+    "d":"द",
+    "e":"ए",
+    "f":"फ",
+    "g":"ग",
+    "h":"ह",
+    "i":"इ",
+    "j":"ज",
+    "k":"क",
+    "l":"ल",
+    "m":"म",
+    "n":"न",
+    "o":"ओ",
+    "p":"प",
+    "q":"क",
+    "r":"र",
+    "s":"स",
+    "t":"त",
+    "u":"उ",
+    "v":"व",
+    "w":"व",
+    "x":"क्स",
+    "y":"य",
+    "z":"ज़"
   };
 
-  text=text.split(/\s+/).map(word=>{
-    return words[word] || word;
-  }).join(" ");
+  // fallback: keep unknown English words
+  if(!hindiWords[word]){
+    return word;
+  }
 
-  document.getElementById("hindiOutput").textContent=text;
+  return w;
 }
 
+
+function convertHindi(){
+
+  const input =
+    document.getElementById("romanHindi").value.trim();
+
+  if(!input){
+    document.getElementById("hindiOutput").textContent = "";
+    return out("पहले English में कुछ लिखें।");
+  }
+
+  const result = input
+    .split(/\s+/)
+    .map(function(word){
+
+      const clean = word
+        .toLowerCase()
+        .replace(/[.,!?;:]+$/g,"");
+
+      const converted = basicRomanToHindi(clean);
+
+      const punctuation =
+        word.slice(clean.length);
+
+      return converted + punctuation;
+
+    })
+    .join(" ");
+
+  document.getElementById("hindiOutput").textContent = result;
+}
+
+
 function copyHindi(){
-  const text=document.getElementById("hindiOutput").textContent;
+
+  const text =
+    document.getElementById("hindiOutput").textContent.trim();
 
   if(!text){
     return out("पहले Hindi text बनाएं।");
   }
 
-  navigator.clipboard.writeText(text);
-  out("Hindi text copied! ✅");
+  navigator.clipboard.writeText(text)
+    .then(function(){
+      out("Hindi text copied! ✅");
+    })
+    .catch(function(){
+      out("Copy नहीं हो पाया। Text को manually select करके copy करें।");
+    });
 }
 
+
 function downloadHindi(){
+
+  const text =
+    document.getElementById("hindiOutput").textContent.trim();
+
+  if(!text){
+    return out("पहले Hindi text बनाएं।");
+  }
+
+  const blob = new Blob(
+    [text],
+    {type:"text/plain;charset=utf-8"}
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "IndianToolHub-Hindi-Text.txt";
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
+
+  out("Hindi text download हो गया। ✅");
+}
   const text=document.getElementById("hindiOutput").textContent;
 
   if(!text){
