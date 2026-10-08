@@ -8,6 +8,19 @@ if(type==="gst") html=`<h2>🧾 GST Calculator</h2><div class="form"><label>Amou
 if(type==="discount") html=`<h2>🏷️ Discount Calculator</h2><div class="form"><label>Original price (₹)<input id="price" type="number" value="1000"></label><label>Discount (%)<input id="disc" type="number" value="20"></label><button onclick="calcDiscount()">Calculate</button></div><div id="result"></div>`;
 if(type==="bmi") html=`<h2>⚖️ BMI Calculator</h2><div class="form"><label>Weight (kg)<input id="weight" type="number" value="70"></label><label>Height (cm)<input id="height" type="number" value="170"></label><button onclick="calcBMI()">Calculate BMI</button></div><div id="result"></div>`;
   if(type==="image") html=`<h2>🖼️ Image Compressor</h2>
+  if(type==="pdf") html=`
+<h2>📄 JPG to PDF</h2>
+<p>Select one or more images and create a PDF.</p>
+
+<div class="form">
+<label>Select images
+<input id="pdfFiles" type="file" accept="image/*" multiple>
+</label>
+
+<button onclick="createPDF()">Create PDF</button>
+</div>
+
+<div id="result"></div>`;
 <p>Select an image and choose compression quality.</p>
 <div class="form">
 <label>Select image
