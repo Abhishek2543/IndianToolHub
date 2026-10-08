@@ -138,8 +138,6 @@ style="width:100%;min-height:180px;padding:12px;font-size:18px;"></textarea>
 </div>
 
 <div id="result"></div>`;
-}
-
   content.innerHTML = html;
   modal.hidden = false;
 }
