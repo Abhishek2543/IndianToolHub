@@ -816,27 +816,95 @@ function romanGujaratiToGujarati(word) {
     "r":"ર",
     "s":"સ",
     "t":"ત",
-    "v":"વ",
-    "w":"વ",
-    "y":"ય",
-    "z":"ઝ"
-  };
+// ===============================
+// GUJARATI TYPING
+// ===============================
 
-  if (w !== word) {
-    return w;
-  }
-
-  if (map[word]) {
-    return map[word];
-  }
-
-  return word;
-}
+const gujaratiWords = {
+  maru: "મારું",
+  maaru: "મારું",
+  naam: "નામ",
+  che: "છે",
+  chhe: "છે",
+  hu: "હું",
+  hun: "હું",
+  mane: "મને",
+  tame: "તમે",
+  tamne: "તમને",
+  tamaru: "તમારું",
+  tamari: "તમારી",
+  tamara: "તમારા",
+  maro: "મારો",
+  mari: "મારી",
+  mara: "મારા",
+  ghar: "ઘર",
+  pani: "પાણી",
+  paani: "પાણી",
+  kem: "કેમ",
+  shu: "શું",
+  su: "શું",
+  kya: "ક્યાં",
+  kyare: "ક્યારે",
+  saru: "સારું",
+  saaru: "સારું",
+  saras: "સરસ",
+  bahu: "બહુ",
+  badhu: "બધું",
+  nathi: "નથી",
+  nahi: "નહીં",
+  ha: "હા",
+  haa: "હા",
+  na: "ના",
+  ane: "અને",
+  pan: "પણ",
+  ek: "એક",
+  be: "બે",
+  tran: "ત્રણ",
+  char: "ચાર",
+  paanch: "પાંચ",
+  kaam: "કામ",
+  dost: "દોસ્ત",
+  mitra: "મિત્ર",
+  prem: "પ્રેમ",
+  bhai: "ભાઈ",
+  behen: "બહેન",
+  maa: "મા",
+  mammi: "મમ્મી",
+  papa: "પપ્પા",
+  dikro: "દીકરો",
+  dikri: "દીકરી",
+  chokro: "છોકરો",
+  chokri: "છોકરી",
+  bharat: "ભારત",
+  gujarat: "ગુજરાત",
+  gujarati: "ગુજરાતી",
+  india: "ઇન્ડિયા",
+  bhagwan: "ભગવાન",
+  ram: "રામ",
+  krishna: "કૃષ્ણ",
+  shree: "શ્રી",
+  aaje: "આજે",
+  aaj: "આજે",
+  kale: "કાલે",
+  kaal: "કાલ",
+  savar: "સવાર",
+  bapor: "બપોર",
+  sanj: "સાંજ",
+  raat: "રાત",
+  divas: "દિવસ",
+  mobile: "મોબાઇલ",
+  phone: "ફોન",
+  computer: "કમ્પ્યુટર",
+  internet: "ઇન્ટરનેટ",
+  website: "વેબસાઇટ"
+};
 
 function convertGujarati() {
 
-  const input =
-    document.getElementById("romanGujarati").value.trim();
+  const input = document
+    .getElementById("romanGujarati")
+    .value
+    .trim();
 
   if (!input) {
     document.getElementById("gujaratiOutput").textContent = "";
@@ -847,15 +915,14 @@ function convertGujarati() {
     .split(/\s+/)
     .map(function(word) {
 
-      const punctuation =
-        word.match(/[.,!?;:]+$/);
+      const punctuation = word.match(/[.,!?;:]+$/);
 
       const clean = word
         .toLowerCase()
-        .replace(/[.,!?;:]+$/,"");
+        .replace(/[.,!?;:]+$/, "");
 
       const converted =
-        convertGujaratiWord(clean);
+        gujaratiWords[clean] || clean;
 
       return converted +
         (punctuation ? punctuation[0] : "");
@@ -868,9 +935,10 @@ function convertGujarati() {
 
 function copyGujarati() {
 
-  const text =
-    document.getElementById("gujaratiOutput")
-      .textContent.trim();
+  const output =
+    document.getElementById("gujaratiOutput");
+
+  const text = output.textContent.trim();
 
   if (!text) {
     return out("પહેલા Gujarati text બનાવો.");
@@ -881,7 +949,7 @@ function copyGujarati() {
       out("Gujarati text copied! ✅");
     })
     .catch(function() {
-      out("Copy થઈ શક્યું નથી. Text manually copy કરો.");
+      out("Copy થઈ શક્યું નથી.");
     });
 }
 
@@ -889,7 +957,8 @@ function downloadGujarati() {
 
   const text =
     document.getElementById("gujaratiOutput")
-      .textContent.trim();
+      .textContent
+      .trim();
 
   if (!text) {
     return out("પહેલા Gujarati text બનાવો.");
@@ -897,7 +966,9 @@ function downloadGujarati() {
 
   const blob = new Blob(
     [text],
-    {type:"text/plain;charset=utf-8"}
+    {
+      type: "text/plain;charset=utf-8"
+    }
   );
 
   const url =
@@ -911,7 +982,9 @@ function downloadGujarati() {
     "IndiaToolHub-Gujarati-Text.txt";
 
   document.body.appendChild(a);
+
   a.click();
+
   document.body.removeChild(a);
 
   URL.revokeObjectURL(url);
