@@ -33,3 +33,41 @@ function calcDiscount(){const a=+price.value,d=+disc.value/100,s=a*d;out(`<b>Sal
 function calcBMI(){const w=+weight.value,h=+height.value/100,b=w/(h*h);let c=b<18.5?"Underweight":b<25?"Normal":b<30?"Overweight":"Obesity";out(`<b>BMI: ${b.toFixed(1)}</b><br>Category: ${c}`)}
 document.getElementById("search").addEventListener("input",e=>{const q=e.target.value.toLowerCase();document.querySelectorAll(".tool-card").forEach(c=>c.style.display=c.dataset.name.includes(q)?"block":"none")});
 document.getElementById("lang").addEventListener("change",e=>{if(e.target.value==="hi"){heroTitle.textContent="उपयोगी ऑनलाइन टूल, बिल्कुल आसान";heroText.textContent="IndiaToolHub पर रोज़मर्रा के काम जल्दी और मुफ्त करें।"}else if(e.target.value==="gu"){heroTitle.textContent="ઉપયોગી ઓનલાઈન ટૂલ્સ, સરળ રીતે";heroText.textContent="IndiaToolHub પર રોજિંદા કામ ઝડપથી અને મફતમાં કરો."}else{heroTitle.textContent="Useful online tools, made simple.";heroText.textContent="Calculate, convert and get everyday tasks done quickly — free on IndiaToolHub."}});
+async function compressImage(){
+  const file=document.getElementById("imageFile").files[0];
+
+  if(!file){
+    return out("Please select an image first.");
+  }
+
+  const quality=+document.getElementById("imageQuality").value/100;
+  const img=new Image();
+
+  img.onload=function(){
+    const canvas=document.createElement("canvas");
+    canvas.width=img.width;
+    canvas.height=img.height;
+
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,0,0);
+
+    canvas.toBlob(function(blob){
+      const url=URL.createObjectURL(blob);
+      const original=(file.size/1024).toFixed(1);
+      const compressed=(blob.size/1024).toFixed(1);
+      const saved=Math.max(0,((file.size-blob.size)/file.size)*100).toFixed(1);
+
+      out(`
+        <b>Compression complete! ✅</b><br><br>
+        Original: ${original} KB<br>
+        Compressed: ${compressed} KB<br>
+        Saved: ${saved}%<br><br>
+        <a href="${url}" download="compressed-image.jpg">
+          <button>⬇️ Download Compressed Image</button>
+        </a>
+      `);
+    },"image/jpeg",quality);
+  };
+
+  img.src=URL.createObjectURL(file);
+}
