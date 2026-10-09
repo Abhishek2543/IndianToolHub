@@ -1,336 +1,265 @@
+
+"use strict";
+
 // =====================================================
-// IndiaToolHub - app.js
+// IndiaToolHub - Complete app.js
 // =====================================================
 
 const modal = document.getElementById("modal");
 const content = document.getElementById("toolContent");
 
+// ---------- Shared helpers ----------
 
-// =====================================================
-// OPEN TOOL
-// =====================================================
+function getElement(id) {
+  return document.getElementById(id);
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function out(message) {
+  const result = getElement("result");
+  if (result) result.innerHTML = message;
+}
+
+function money(value) {
+  return "₹" + Number(value).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function showMessage(element, message) {
+  if (!element) return;
+  element.hidden = false;
+  element.innerHTML = `<p>${escapeHTML(message)}</p>`;
+}
+
+async function copyText(text, message = "Copied successfully!") {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      const success = document.execCommand("copy");
+      textarea.remove();
+
+      if (!success) throw new Error("Copy failed");
+    }
+    alert(message);
+  } catch {
+    alert("Copy nahi hua. Text select karke manually copy karein.");
+  }
+}
+
+function fallbackCopy(text) {
+  copyText(text);
+}
+
+// ---------- Open tool ----------
 
 function openTool(type) {
+  if (!modal || !content) return;
 
   modal.hidden = false;
 
-  
-if (type === "age") {
-  content.innerHTML = `
-    <div class="pro-tool">
-      <div class="pro-tool-icon">🎂</div>
-      <h2>Age Calculator</h2>
-      <p class="tool-subtitle">
-        Calculate your exact age in seconds.
-      </p>
+  const tools = {
+    age: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">🎂</div>
+        <h2>Age Calculator</h2>
+        <p class="tool-subtitle">Calculate your exact age.</p>
+        <label for="dob">Date of Birth</label>
+        <input type="date" id="dob" max="${todayISO()}">
+        <div class="tool-actions">
+          <button onclick="calcAge()">Calculate Age</button>
+          <button class="reset-btn" onclick="resetAge()">Reset</button>
+        </div>
+        <div id="ageResult" class="age-results" hidden></div>
+      </div>`,
 
-      <label for="dob">Date of Birth</label>
-      <input
-        type="date"
-        id="dob"
-        max="${new Date().toLocaleDateString("en-CA")}"
-      >
+    emi: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">💰</div>
+        <h2>EMI Calculator</h2>
+        <p class="tool-subtitle">Estimate your monthly loan payment.</p>
+        <label for="loan">Loan Amount (₹)</label>
+        <input type="number" id="loan" min="1" placeholder="e.g. 500000">
+        <label for="rate">Annual Interest Rate (%)</label>
+        <input type="number" id="rate" min="0" step="0.01" placeholder="e.g. 8.5">
+        <label for="years">Loan Tenure (Years)</label>
+        <input type="number" id="years" min="0.0833" max="50" step="any" placeholder="e.g. 5">
+        <div class="tool-actions">
+          <button onclick="calcEMI()">Calculate EMI</button>
+          <button class="reset-btn" onclick="resetEMI()">Reset</button>
+        </div>
+        <div id="emiResult" class="age-results" hidden></div>
+      </div>`,
 
-      <div class="tool-actions">
-        <button onclick="calcAge()">Calculate Age</button>
-        <button class="reset-btn" onclick="resetAge()">Reset</button>
-      </div>
+    percent: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">％</div>
+        <h2>Percentage Calculator</h2>
+        <label for="p">Percentage (%)</label>
+        <input type="number" id="p" placeholder="e.g. 20">
+        <label for="n">Number</label>
+        <input type="number" id="n" placeholder="e.g. 500">
+        <div class="tool-actions">
+          <button onclick="calcPercent()">Calculate</button>
+          <button class="reset-btn" onclick="resetPercent()">Reset</button>
+        </div>
+        <div id="result"></div>
+      </div>`,
 
-      <div id="ageResult" class="age-results" hidden></div>
-    </div>
-  `;
+    gst: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">🧾</div>
+        <h2>GST Calculator</h2>
+        <p class="tool-subtitle">Calculate GST and final price.</p>
+        <label for="gstAmount">Amount (₹)</label>
+        <input type="number" id="gstAmount" min="0" step="0.01" placeholder="e.g. 1000">
+        <label for="gstRate">GST Rate</label>
+        <select id="gstRate">
+          <option value="5">5% GST</option>
+          <option value="12">12% GST</option>
+          <option value="18" selected>18% GST</option>
+          <option value="28">28% GST</option>
+        </select>
+        <label for="gstType">Calculation Type</label>
+        <select id="gstType">
+          <option value="add">Add GST to amount</option>
+          <option value="remove">Remove GST from total</option>
+        </select>
+        <div class="tool-actions">
+          <button onclick="calcGST()">Calculate GST</button>
+          <button class="reset-btn" onclick="resetGST()">Reset</button>
+        </div>
+        <div id="gstResult" class="age-results" hidden></div>
+      </div>`,
+
+    discount: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">🏷️</div>
+        <h2>Discount Calculator</h2>
+        <label for="price">Original Price (₹)</label>
+        <input type="number" id="price" min="0" step="0.01" placeholder="1000">
+        <label for="disc">Discount (%)</label>
+        <input type="number" id="disc" min="0" max="100" step="any" placeholder="20">
+        <div class="tool-actions">
+          <button onclick="calcDiscount()">Calculate Discount</button>
+          <button class="reset-btn" onclick="resetDiscount()">Reset</button>
+        </div>
+        <div id="result"></div>
+      </div>`,
+
+    bmi: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">⚖️</div>
+        <h2>BMI Calculator</h2>
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" min="1" step="0.1" placeholder="70">
+        <label for="height">Height (cm)</label>
+        <input type="number" id="height" min="1" step="0.1" placeholder="170">
+        <div class="tool-actions">
+          <button onclick="calcBMI()">Calculate BMI</button>
+          <button class="reset-btn" onclick="resetBMI()">Reset</button>
+        </div>
+        <div id="result"></div>
+      </div>`,
+
+    image: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">🖼️</div>
+        <h2>Image Compressor</h2>
+        <label for="imageFile">Select Image</label>
+        <input type="file" id="imageFile" accept="image/*">
+        <label for="imageQuality">Image Quality</label>
+        <input type="range" id="imageQuality" min="0.1" max="1" step="0.1" value="0.7">
+        <p>Lower quality usually means a smaller file.</p>
+        <button onclick="compressImage()">Compress Image</button>
+        <div id="result"></div>
+      </div>`,
+
+    pdf: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">📄</div>
+        <h2>JPG to PDF</h2>
+        <label for="pdfFiles">Select JPG / PNG Images</label>
+        <input type="file" id="pdfFiles" accept="image/jpeg,image/png" multiple>
+        <p>Each image will be placed on a separate PDF page.</p>
+        <button onclick="createPDF()">Create PDF</button>
+        <div id="result"></div>
+      </div>`,
+
+    hindi: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">🇮🇳</div>
+        <h2>Hindi Typing</h2>
+        <p>English letters mein likhein. Basic common-word conversion available hai.</p>
+        <textarea id="romanHindi" rows="5" placeholder="mera naam abhishek hai"></textarea>
+        <div class="tool-actions">
+          <button onclick="convertHindi()">Convert to Hindi</button>
+          <button class="reset-btn" onclick="clearHindi()">Clear</button>
+        </div>
+        <div id="hindiOutput" class="typing-output"></div>
+        <button onclick="copyHindi()">Copy Hindi</button>
+        <button onclick="downloadHindi()">Download Text</button>
+      </div>`,
+
+    gujarati: `
+      <div class="pro-tool">
+        <div class="pro-tool-icon">🪷</div>
+        <h2>Gujarati Typing</h2>
+        <p>English letters mein likhein. Basic common-word conversion available hai.</p>
+        <textarea id="romanGujarati" rows="5" placeholder="maru naam abhishek che"></textarea>
+        <div class="tool-actions">
+          <button onclick="convertGujarati()">Convert to Gujarati</button>
+          <button class="reset-btn" onclick="clearGujarati()">Clear</button>
+        </div>
+        <div id="gujaratiOutput" class="typing-output"></div>
+        <button onclick="copyGujarati()">Copy Gujarati</button>
+        <button onclick="downloadGujarati()">Download Text</button>
+      </div>`
+  };
+
+  content.innerHTML = tools[type] || "<p>Tool not found.</p>";
 }
-
-
-
-  
-else if (type === "emi") {
-  content.innerHTML = `
-    <div class="pro-tool">
-      <div class="pro-tool-icon">💰</div>
-      <h2>EMI Calculator</h2>
-      <p class="tool-subtitle">
-        Estimate your monthly loan payment.
-      </p>
-
-      <label for="loan">Loan Amount (₹)</label>
-      <input type="number" id="loan" min="1" placeholder="e.g. 500000">
-
-      <label for="rate">Annual Interest Rate (%)</label>
-      <input type="number" id="rate" min="0" step="0.01" placeholder="e.g. 8.5">
-
-      <label for="years">Loan Tenure (Years)</label>
-      <input type="number" id="years" min="1" max="50" step="1" placeholder="e.g. 5">
-
-      <div class="tool-actions">
-        <button onclick="calcEMI()">Calculate EMI</button>
-        <button class="reset-btn" onclick="resetEMI()">Reset</button>
-      </div>
-
-      <div id="emiResult" class="age-results" hidden></div>
-    </div>
-  `;
-}
-
-
-
-  else if (type === "percent") {
-
-    content.innerHTML = `
-      <h2>Percentage Calculator</h2>
-
-      <label>Percentage (%)</label>
-      <input type="number" id="p" placeholder="20">
-
-      <label>Number</label>
-      <input type="number" id="n" placeholder="500">
-
-      <button onclick="calcPercent()">Calculate</button>
-
-      <div id="result"></div>
-    `;
-
-  }
-
-
-  else if (type === "gst") {
-
-  content.innerHTML = `
-    <div class="pro-tool">
-      <div class="pro-tool-icon">🧾</div>
-      <h2>GST Calculator</h2>
-      <p class="tool-subtitle">
-        Calculate GST amount and final price easily.
-      </p>
-
-      <label for="gstAmount">Amount (₹)</label>
-      <input
-        type="number"
-        id="gstAmount"
-        min="0"
-        step="0.01"
-        placeholder="e.g. 1000"
-      >
-
-      <label for="gstRate">GST Rate</label>
-      <select id="gstRate">
-        <option value="5">5% GST</option>
-        <option value="12">12% GST</option>
-        <option value="18" selected>18% GST</option>
-        <option value="28">28% GST</option>
-      </select>
-
-      <label>Calculation Type</label>
-      <select id="gstType">
-        <option value="add">Add GST to amount</option>
-        <option value="remove">Remove GST from total</option>
-      </select>
-
-      <div class="tool-actions">
-        <button onclick="calcGST()">Calculate GST</button>
-        <button class="reset-btn" onclick="resetGST()">Reset</button>
-      </div>
-
-      <div id="gstResult" class="age-results" hidden></div>
-    </div>
-  `;
-}
-
-
-
-  else if (type === "discount") {
-
-    content.innerHTML = `
-      <h2>Discount Calculator</h2>
-
-      <label>Original Price (₹)</label>
-      <input type="number" id="price" placeholder="1000">
-
-      <label>Discount (%)</label>
-      <input type="number" id="disc" placeholder="20">
-
-      <button onclick="calcDiscount()">Calculate Discount</button>
-
-      <div id="result"></div>
-    `;
-
-  }
-
-
-  else if (type === "bmi") {
-
-    content.innerHTML = `
-      <h2>BMI Calculator</h2>
-
-      <label>Weight (kg)</label>
-      <input type="number" id="weight" placeholder="70" step="0.1">
-
-      <label>Height (cm)</label>
-      <input type="number" id="height" placeholder="170" step="0.1">
-
-      <button onclick="calcBMI()">Calculate BMI</button>
-
-      <div id="result"></div>
-    `;
-
-  }
-
-
-  else if (type === "image") {
-
-    content.innerHTML = `
-      <h2>Image Compressor</h2>
-
-      <label>Select Image</label>
-      <input type="file" id="imageFile" accept="image/*">
-
-      <label>Quality</label>
-      <input
-        type="range"
-        id="imageQuality"
-        min="0.1"
-        max="1"
-        step="0.1"
-        value="0.7"
-      >
-
-      <button onclick="compressImage()">Compress Image</button>
-
-      <div id="result"></div>
-    `;
-
-  }
-
-
-  else if (type === "pdf") {
-
-    content.innerHTML = `
-      <h2>JPG to PDF</h2>
-
-      <label>Select JPG / PNG Images</label>
-
-      <input
-        type="file"
-        id="pdfFiles"
-        accept="image/jpeg,image/png"
-        multiple
-      >
-
-      <button onclick="createPDF()">Create PDF</button>
-
-      <div id="result"></div>
-    `;
-
-  }
-
-
-  else if (type === "hindi") {
-
-    content.innerHTML = `
-      <h2>Hindi Typing</h2>
-
-      <p>English में लिखें और Hindi में बदलें।</p>
-
-      <textarea
-        id="romanHindi"
-        rows="6"
-        placeholder="mera naam abhishek hai"
-      ></textarea>
-
-      <button onclick="convertHindi()">
-        Convert to Hindi
-      </button>
-
-      <button onclick="copyHindi()">
-        Copy
-      </button>
-
-      <button onclick="downloadHindi()">
-        Download
-      </button>
-
-      <div
-        id="hindiOutput"
-        class="typing-output"
-      ></div>
-    `;
-
-  }
-
-
-  else if (type === "gujarati") {
-
-    content.innerHTML = `
-      <h2>Gujarati Typing</h2>
-
-      <p>English में लिखें और Gujarati में बदलें।</p>
-
-      <textarea
-        id="romanGujarati"
-        rows="6"
-        placeholder="maru naam abhishek che"
-      ></textarea>
-
-      <button onclick="convertGujarati()">
-        Convert to Gujarati
-      </button>
-
-      <button onclick="copyGujarati()">
-        Copy
-      </button>
-
-      <button onclick="downloadGujarati()">
-        Download
-      </button>
-
-      <div
-        id="gujaratiOutput"
-        class="typing-output"
-      ></div>
-    `;
-
-  }
-}
-
-
-// =====================================================
-// CLOSE TOOL
-// =====================================================
 
 function closeTool() {
-
-  modal.hidden = true;
-
-  content.innerHTML = "";
+  if (modal) modal.hidden = true;
+  if (content) content.innerHTML = "";
 }
 
-
-// =====================================================
-// SHOW RESULT
-// =====================================================
-
-function out(message) {
-
-  const result = document.getElementById("result");
-
-  if (result) {
-    result.innerHTML = message;
-  }
+function todayISO() {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
-
-// =====================================================
-// AGE CALCULATOR
-// =====================================================
-
+// ---------- Age Calculator ----------
 
 function calcAge() {
-  const input = document.getElementById("dob");
-  const result = document.getElementById("ageResult");
+  const input = getElement("dob");
+  const result = getElement("ageResult");
+  if (!input || !result) return;
 
-  if (!input.value) {
-    result.hidden = false;
-    result.innerHTML = "<p>Please select your date of birth.</p>";
+  if (!input.value || input.value > todayISO()) {
+    showMessage(result, "Please select a valid date of birth.");
     return;
   }
 
@@ -338,24 +267,13 @@ function calcAge() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  if (isNaN(dob.getTime()) || dob > today) {
-    result.hidden = false;
-    result.innerHTML = "<p>Please enter a valid date of birth.</p>";
-    return;
-  }
-
   let years = today.getFullYear() - dob.getFullYear();
   let months = today.getMonth() - dob.getMonth();
   let days = today.getDate() - dob.getDate();
 
   if (days < 0) {
     months--;
-    const daysInPreviousMonth = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      0
-    ).getDate();
-    days += daysInPreviousMonth;
+    days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
   }
 
   if (months < 0) {
@@ -367,74 +285,55 @@ function calcAge() {
   result.innerHTML = `
     <h3>Your Exact Age</h3>
     <div class="age-result-grid">
-      <div class="age-result-card">
-        <strong>${years}</strong>
-        <span>Years</span>
-      </div>
-      <div class="age-result-card">
-        <strong>${months}</strong>
-        <span>Months</span>
-      </div>
-      <div class="age-result-card">
-        <strong>${days}</strong>
-        <span>Days</span>
-      </div>
+      <div class="age-result-card"><strong>${years}</strong><span>Years</span></div>
+      <div class="age-result-card"><strong>${months}</strong><span>Months</span></div>
+      <div class="age-result-card"><strong>${days}</strong><span>Days</span></div>
     </div>
-    <p class="age-note">Age calculated as of today.</p>
-    <button onclick="copyAgeResult()">Copy Result</button>
-  `;
+    <p class="age-note">Calculated as of today.</p>
+    <button onclick="copyAgeResult()">Copy Result</button>`;
 }
 
 function resetAge() {
-  document.getElementById("dob").value = "";
-  const result = document.getElementById("ageResult");
-  result.hidden = true;
-  result.innerHTML = "";
-}
-
-function copyAgeResult() {
-  const result = document.getElementById("ageResult");
-  const text = result.querySelector(".age-result-grid").innerText;
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text)
-      .then(() => out("Age result copied! ✅"))
-      .catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
+  if (getElement("dob")) getElement("dob").value = "";
+  const result = getElement("ageResult");
+  if (result) {
+    result.hidden = true;
+    result.innerHTML = "";
   }
 }
 
+function copyAgeResult() {
+  const result = getElement("ageResult");
+  if (result && !result.hidden) copyText(result.innerText, "Age result copied!");
+}
 
-
-// =====================================================
-// EMI CALCULATOR
-// =====================================================
-
+// ---------- EMI Calculator ----------
 
 function calcEMI() {
-  const loan = Number(document.getElementById("loan").value);
-  const rate = Number(document.getElementById("rate").value);
-  const years = Number(document.getElementById("years").value);
-  const result = document.getElementById("emiResult");
+  const loanInput = getElement("loan");
+  const rateInput = getElement("rate");
+  const yearsInput = getElement("years");
+  const result = getElement("emiResult");
+  if (!loanInput || !rateInput || !yearsInput || !result) return;
+
+  const loan = Number(loanInput.value);
+  const rate = Number(rateInput.value);
+  const years = Number(yearsInput.value);
 
   if (
-    !Number.isFinite(loan) ||
-    !Number.isFinite(rate) ||
-    !Number.isFinite(years) ||
-    loan <= 0 ||
-    rate < 0 ||
-    years <= 0 ||
-    years > 50
+    loanInput.value.trim() === "" ||
+    rateInput.value.trim() === "" ||
+    yearsInput.value.trim() === "" ||
+    !Number.isFinite(loan) || loan <= 0 ||
+    !Number.isFinite(rate) || rate < 0 ||
+    !Number.isFinite(years) || years <= 0 || years > 50
   ) {
-    result.hidden = false;
-    result.innerHTML = "<p>Please enter valid loan details. Tenure must be 50 years or less.</p>";
+    showMessage(result, "Enter a valid loan amount, interest rate and tenure (up to 50 years).");
     return;
   }
 
   const months = Math.round(years * 12);
   const monthlyRate = rate / 1200;
-
   let emi;
 
   if (monthlyRate === 0) {
@@ -447,1420 +346,502 @@ function calcEMI() {
   const totalPayment = emi * months;
   const totalInterest = totalPayment - loan;
 
-  const money = value =>
-    "₹" + value.toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-
   result.hidden = false;
   result.innerHTML = `
     <h3>Your Loan Summary</h3>
-
     <div class="age-result-grid">
-      <div class="age-result-card">
-        <strong style="font-size:20px">${money(emi)}</strong>
-        <span>Monthly EMI</span>
-      </div>
-
-      <div class="age-result-card">
-        <strong style="font-size:20px">${money(totalInterest)}</strong>
-        <span>Total Interest</span>
-      </div>
-
-      <div class="age-result-card">
-        <strong style="font-size:20px">${money(totalPayment)}</strong>
-        <span>Total Payment</span>
-      </div>
+      <div class="age-result-card"><strong style="font-size:18px">${money(emi)}</strong><span>Monthly EMI</span></div>
+      <div class="age-result-card"><strong style="font-size:18px">${money(totalInterest)}</strong><span>Total Interest</span></div>
+      <div class="age-result-card"><strong style="font-size:18px">${money(totalPayment)}</strong><span>Total Payment</span></div>
     </div>
-
-    <p class="age-note">
-      Loan Amount: ${money(loan)}<br>
-      Tenure: ${months} months
-    </p>
-
-    <button onclick="copyEMIResult()">Copy Result</button>
-  `;
+    <p class="age-note">Loan Amount: ${money(loan)}<br>Tenure: ${months} months</p>
+    <button onclick="copyEMIResult()">Copy Result</button>`;
 }
 
 function resetEMI() {
-  document.getElementById("loan").value = "";
-  document.getElementById("rate").value = "";
-  document.getElementById("years").value = "";
-
-  const result = document.getElementById("emiResult");
-  result.hidden = true;
-  result.innerHTML = "";
+  ["loan", "rate", "years"].forEach(id => {
+    if (getElement(id)) getElement(id).value = "";
+  });
+  const result = getElement("emiResult");
+  if (result) {
+    result.hidden = true;
+    result.innerHTML = "";
+  }
 }
 
 function copyEMIResult() {
-  const result = document.getElementById("emiResult");
-
-  if (!result || result.hidden) return;
-
-  const text = result.innerText;
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text)
-      .then(() => out("EMI result copied! ✅"))
-      .catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
-  }
+  const result = getElement("emiResult");
+  if (result && !result.hidden) copyText(result.innerText, "EMI result copied!");
 }
 
-
-
-// =====================================================
-// PERCENTAGE CALCULATOR
-// =====================================================
+// ---------- Percentage Calculator ----------
 
 function calcPercent() {
+  const pInput = getElement("p");
+  const nInput = getElement("n");
+  if (!pInput || !nInput) return;
 
-  const p =
-    Number(document.getElementById("p").value);
-
-  const n =
-    Number(document.getElementById("n").value);
-
-  if (
-    isNaN(p) ||
-    isNaN(n)
-  ) {
-
-    out("Please enter valid numbers.");
-
+  if (pInput.value.trim() === "" || nInput.value.trim() === "") {
+    out("Please enter both numbers.");
     return;
   }
 
-  const result =
-    (p / 100) * n;
+  const p = Number(pInput.value);
+  const n = Number(nInput.value);
 
-  out(
-    `<b>${p}% of ${n} = ${result}</b>`
-  );
+  if (!Number.isFinite(p) || !Number.isFinite(n)) {
+    out("Please enter valid numbers.");
+    return;
+  }
+
+  out(`<h3>Result</h3><p>${p}% of ${n} = <strong>${((p / 100) * n).toLocaleString("en-IN")}</strong></p>`);
 }
 
+function resetPercent() {
+  ["p", "n"].forEach(id => {
+    if (getElement(id)) getElement(id).value = "";
+  });
+  out("");
+}
 
-// =====================================================
-// GST CALCULATOR
-// =====================================================
-
+// ---------- GST Calculator ----------
 
 function calcGST() {
-  const amountInput = document.getElementById("gstAmount");
-  const rateInput = document.getElementById("gstRate");
-  const typeInput = document.getElementById("gstType");
-  const result = document.getElementById("gstResult");
+  const amountInput = getElement("gstAmount");
+  const rateInput = getElement("gstRate");
+  const typeInput = getElement("gstType");
+  const result = getElement("gstResult");
+  if (!amountInput || !rateInput || !typeInput || !result) return;
 
   const amount = Number(amountInput.value);
   const rate = Number(rateInput.value);
   const type = typeInput.value;
 
-  if (
-    amountInput.value.trim() === "" ||
-    !Number.isFinite(amount) ||
-    amount <= 0
-  ) {
-    result.hidden = false;
-    result.innerHTML = "<p>Please enter a valid amount greater than zero.</p>";
+  if (amountInput.value.trim() === "" || !Number.isFinite(amount) || amount <= 0) {
+    showMessage(result, "Please enter an amount greater than zero.");
     return;
   }
 
-  let baseAmount;
-  let gstAmount;
-  let totalAmount;
+  let base;
+  let gst;
+  let total;
 
   if (type === "add") {
-    baseAmount = amount;
-    gstAmount = amount * rate / 100;
-    totalAmount = amount + gstAmount;
+    base = amount;
+    gst = amount * rate / 100;
+    total = amount + gst;
   } else {
-    totalAmount = amount;
-    baseAmount = amount * 100 / (100 + rate);
-    gstAmount = amount - baseAmount;
+    total = amount;
+    base = amount * 100 / (100 + rate);
+    gst = total - base;
   }
-
-  const money = value =>
-    "₹" + value.toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
 
   result.hidden = false;
   result.innerHTML = `
     <h3>GST Summary</h3>
-
     <div class="age-result-grid">
-      <div class="age-result-card">
-        <strong style="font-size:20px">${money(baseAmount)}</strong>
-        <span>Base Amount</span>
-      </div>
-
-      <div class="age-result-card">
-        <strong style="font-size:20px">${money(gstAmount)}</strong>
-        <span>GST (${rate}%)</span>
-      </div>
-
-      <div class="age-result-card">
-        <strong style="font-size:20px">${money(totalAmount)}</strong>
-        <span>${type === "add" ? "Final Amount" : "Amount Before GST"}</span>
-      </div>
+      <div class="age-result-card"><strong style="font-size:18px">${money(base)}</strong><span>Base Amount</span></div>
+      <div class="age-result-card"><strong style="font-size:18px">${money(gst)}</strong><span>GST (${rate}%)</span></div>
+      <div class="age-result-card"><strong style="font-size:18px">${money(total)}</strong><span>${type === "add" ? "Final Amount" : "Total Amount"}</span></div>
     </div>
-
-    <button onclick="copyGSTResult()">Copy Result</button>
-  `;
+    <button onclick="copyGSTResult()">Copy Result</button>`;
 }
 
 function resetGST() {
-  document.getElementById("gstAmount").value = "";
-  document.getElementById("gstRate").value = "18";
-  document.getElementById("gstType").value = "add";
-
-  const result = document.getElementById("gstResult");
-  result.hidden = true;
-  result.innerHTML = "";
+  if (getElement("gstAmount")) getElement("gstAmount").value = "";
+  if (getElement("gstRate")) getElement("gstRate").value = "18";
+  if (getElement("gstType")) getElement("gstType").value = "add";
+  const result = getElement("gstResult");
+  if (result) {
+    result.hidden = true;
+    result.innerHTML = "";
+  }
 }
 
 function copyGSTResult() {
-  const result = document.getElementById("gstResult");
-  if (!result || result.hidden) return;
-
-  const text = result.innerText;
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text)
-      .then(() => alert("GST result copied!"))
-      .catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
-  }
+  const result = getElement("gstResult");
+  if (result && !result.hidden) copyText(result.innerText, "GST result copied!");
 }
 
-
-// =====================================================
-// DISCOUNT CALCULATOR
-// =====================================================
+// ---------- Discount Calculator ----------
 
 function calcDiscount() {
+  const priceInput = getElement("price");
+  const discInput = getElement("disc");
+  if (!priceInput || !discInput) return;
 
-  const price =
-    Number(document.getElementById("price").value);
-
-  const disc =
-    Number(document.getElementById("disc").value);
-
-  if (
-    price <= 0 ||
-    disc < 0
-  ) {
-
-    out("Please enter valid price and discount.");
-
+  if (priceInput.value.trim() === "" || discInput.value.trim() === "") {
+    out("Please enter price and discount.");
     return;
   }
 
-  const discountAmount =
-    price * disc / 100;
+  const price = Number(priceInput.value);
+  const disc = Number(discInput.value);
 
-  const finalPrice =
-    price - discountAmount;
+  if (
+    !Number.isFinite(price) || price <= 0 ||
+    !Number.isFinite(disc) || disc < 0 || disc > 100
+  ) {
+    out("Price must be positive and discount must be between 0% and 100%.");
+    return;
+  }
 
-  out(`
-    <b>Discount:</b> ₹${discountAmount.toFixed(2)}<br>
-    <b>Final Price:</b> ₹${finalPrice.toFixed(2)}
-  `);
+  const saved = price * disc / 100;
+  const finalPrice = price - saved;
+
+  out(`<h3>Discount Summary</h3><p>Discount: <strong>${money(saved)}</strong></p><p>Final Price: <strong>${money(finalPrice)}</strong></p>`);
 }
 
+function resetDiscount() {
+  ["price", "disc"].forEach(id => {
+    if (getElement(id)) getElement(id).value = "";
+  });
+  out("");
+}
 
-// =====================================================
-// BMI CALCULATOR
-// =====================================================
+// ---------- BMI Calculator ----------
 
 function calcBMI() {
+  const weightInput = getElement("weight");
+  const heightInput = getElement("height");
+  if (!weightInput || !heightInput) return;
 
-  const weight =
-    Number(document.getElementById("weight").value);
-
-  const height =
-    Number(document.getElementById("height").value);
-
-  if (
-    weight <= 0 ||
-    height <= 0
-  ) {
-
-    out("Please enter valid weight and height.");
-
+  if (weightInput.value.trim() === "" || heightInput.value.trim() === "") {
+    out("Please enter weight and height.");
     return;
   }
 
-  const heightMeters =
-    height / 100;
+  const weight = Number(weightInput.value);
+  const height = Number(heightInput.value);
 
-  const bmi =
-    weight /
-    (
-      heightMeters *
-      heightMeters
-    );
-
-  let category = "";
-
-  if (bmi < 18.5) {
-
-    category = "Underweight";
-
-  } else if (bmi < 25) {
-
-    category = "Normal";
-
-  } else if (bmi < 30) {
-
-    category = "Overweight";
-
-  } else {
-
-    category = "Obese";
+  if (
+    !Number.isFinite(weight) || weight <= 0 ||
+    !Number.isFinite(height) || height <= 0
+  ) {
+    out("Please enter valid positive measurements.");
+    return;
   }
 
-  out(`
-    <b>BMI:</b> ${bmi.toFixed(2)}<br>
-    <b>Category:</b> ${category}
-  `);
+  const bmi = weight / Math.pow(height / 100, 2);
+  let category;
+
+  if (bmi < 18.5) category = "Underweight";
+  else if (bmi < 25) category = "Normal range";
+  else if (bmi < 30) category = "Overweight";
+  else category = "Obesity range";
+
+  out(`<h3>BMI Result</h3><p>BMI: <strong>${bmi.toFixed(1)}</strong></p><p>Category: <strong>${category}</strong></p><small>BMI is a screening measure, not a diagnosis.</small>`);
 }
 
+function resetBMI() {
+  ["weight", "height"].forEach(id => {
+    if (getElement(id)) getElement(id).value = "";
+  });
+  out("");
+}
 
-// =====================================================
-// IMAGE COMPRESSOR
-// =====================================================
+// ---------- Image Compressor ----------
 
 function compressImage() {
+  const fileInput = getElement("imageFile");
+  const qualityInput = getElement("imageQuality");
+  if (!fileInput || !qualityInput) return;
 
-  const fileInput =
-    document.getElementById("imageFile");
-
-  const qualityInput =
-    document.getElementById("imageQuality");
-
-  const file =
-    fileInput.files[0];
-
-  const quality =
-    Number(qualityInput.value);
+  const file = fileInput.files[0];
+  const quality = Number(qualityInput.value);
 
   if (!file) {
-
-    out("Please select an image.");
-
+    out("Please select an image first.");
     return;
   }
 
   if (!file.type.startsWith("image/")) {
-
-    out("Please select a valid image.");
-
+    out("Please select a valid image file.");
     return;
   }
 
-  const reader =
-    new FileReader();
+  const reader = new FileReader();
 
-  reader.onload = function(event) {
-
+  reader.onload = event => {
     loadImage(event.target.result)
-      .then(function(image) {
+      .then(image => {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
 
-        const canvas =
-          document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas unavailable");
 
-        const ctx =
-          canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0);
 
-        canvas.width =
-          image.width;
+        canvas.toBlob(blob => {
+          if (!blob) {
+            out("Compression failed. Try another image.");
+            return;
+          }
 
-        canvas.height =
-          image.height;
+          const url = URL.createObjectURL(blob);
+          const saved = file.size > 0
+            ? ((1 - blob.size / file.size) * 100).toFixed(1)
+            : "0.0";
 
-        ctx.drawImage(
-          image,
-          0,
-          0
-        );
-
-        canvas.toBlob(
-          function(blob) {
-
-            if (!blob) {
-
-              out("Image compression failed.");
-
-              return;
-            }
-
-            const url =
-              URL.createObjectURL(blob);
-
-            out(`
-              <p><b>Compressed image ready!</b></p>
-
-              <p>
-                Original:
-                ${(file.size / 1024).toFixed(1)} KB
-              </p>
-
-              <p>
-                Compressed:
-                ${(blob.size / 1024).toFixed(1)} KB
-              </p>
-
-              <a
-                href="${url}"
-                download="IndiaToolHub-compressed.jpg"
-              >
-                Download Compressed Image
-              </a>
-            `);
-
-          },
-          "image/jpeg",
-          quality
-        );
-
+          out(`
+            <h3>Compressed Image Ready</h3>
+            <p>Original size: ${(file.size / 1024).toFixed(1)} KB</p>
+            <p>Compressed size: ${(blob.size / 1024).toFixed(1)} KB</p>
+            <p>${blob.size < file.size ? `Size reduced by ${saved}%` : "This image did not become smaller at this quality setting."}</p>
+            <a href="${url}" download="IndiaToolHub-compressed.jpg">Download Compressed Image</a>
+          `);
+        }, "image/jpeg", quality);
       })
-      .catch(function() {
-
-        out("Could not process image.");
-
-      });
+      .catch(() => out("Could not process this image. Please try another."));
   };
 
+  reader.onerror = () => out("Could not read the selected image.");
   reader.readAsDataURL(file);
 }
 
-
-// =====================================================
-// READ FILE AS DATA URL
-// =====================================================
-
-function readFileAsDataURL(file) {
-
-  return new Promise(function(resolve, reject) {
-
-    const reader =
-      new FileReader();
-
-    reader.onload =
-      function() {
-        resolve(reader.result);
-      };
-
-    reader.onerror =
-      function() {
-        reject(reader.error);
-      };
-
-    reader.readAsDataURL(file);
-  });
-}
-
-
-// =====================================================
-// LOAD IMAGE
-// =====================================================
-
 function loadImage(src) {
-
-  return new Promise(function(resolve, reject) {
-
-    const image =
-      new Image();
-
-    image.onload =
-      function() {
-        resolve(image);
-      };
-
-    image.onerror =
-      function() {
-        reject(new Error("Image loading failed"));
-      };
-
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Image loading failed"));
     image.src = src;
   });
 }
 
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
-// =====================================================
-// JPG TO PDF
-// =====================================================
+// ---------- JPG / PNG to PDF ----------
 
 async function createPDF() {
+  const input = getElement("pdfFiles");
+  if (!input) return;
 
-  const input =
-    document.getElementById("pdfFiles");
-
-  const files =
-    Array.from(input.files);
+  const files = Array.from(input.files || []).filter(file =>
+    ["image/jpeg", "image/png"].includes(file.type)
+  );
 
   if (!files.length) {
-
-    out("Please select at least one image.");
-
+    out("Please select at least one JPG or PNG image.");
     return;
   }
 
-  if (
-    typeof window.jspdf === "undefined" ||
-    !window.jspdf.jsPDF
-  ) {
-
-    out("PDF library load नहीं हुई। Internet connection check करें.");
-
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    out("PDF library load nahi hui. Internet connection aur index.html ke jsPDF script ko check karein.");
     return;
   }
 
   try {
-
-    const {
-      jsPDF
-    } = window.jspdf;
-
+    const { jsPDF } = window.jspdf;
     let pdf = null;
 
-    for (let i = 0; i < files.length; i++) {
+    for (const file of files) {
+      const data = await readFileAsDataURL(file);
+      const image = await loadImage(data);
 
-      const file = files[i];
-
-      if (!file.type.startsWith("image/")) {
-        continue;
-      }
-
-      const data =
-        await readFileAsDataURL(file);
-
-      const image =
-        await loadImage(data);
-
-      const orientation =
-        image.width > image.height
-          ? "landscape"
-          : "portrait";
+      const orientation = image.width > image.height ? "landscape" : "portrait";
 
       if (!pdf) {
-
-        pdf =
-          new jsPDF({
-            orientation: orientation,
-            unit: "mm",
-            format: "a4"
-          });
-
+        pdf = new jsPDF({
+          orientation,
+          unit: "mm",
+          format: "a4"
+        });
       } else {
-
-        pdf.addPage(
-          "a4",
-          orientation
-        );
+        pdf.addPage("a4", orientation);
       }
 
-      const pageWidth =
-        pdf.internal.pageSize.getWidth();
-
-      const pageHeight =
-        pdf.internal.pageSize.getHeight();
-
-      const margin = 10;
-
-      const maxWidth =
-        pageWidth - margin * 2;
-
-      const maxHeight =
-        pageHeight - margin * 2;
-
-      const ratio =
-        Math.min(
-          maxWidth / image.width,
-          maxHeight / image.height
-        );
-
-      const width =
-        image.width * ratio;
-
-      const height =
-        image.height * ratio;
-
-      const x =
-        (pageWidth - width) / 2;
-
-      const y =
-        (pageHeight - height) / 2;
-
-      pdf.addImage(
-        data,
-        "JPEG",
-        x,
-        y,
-        width,
-        height
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+      const scale = Math.min(
+        maxWidth / image.width,
+        maxHeight / image.height
       );
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const x = (pageWidth - width) / 2;
+      const y = (pageHeight - height) / 2;
+
+      pdf.addImage(data, file.type === "image/png" ? "PNG" : "JPEG", x, y, width, height);
     }
 
     if (!pdf) {
-
-      out("No valid images selected.");
-
+      out("No supported images were found.");
       return;
     }
 
-    pdf.save(
-      "IndiaToolHub-JPG-to-PDF.pdf"
-    );
-
-    out("PDF successfully created! ✅");
-
+    pdf.save("IndiaToolHub-images.pdf");
+    out(`<p><strong>PDF created successfully!</strong> ${files.length} image(s) added.</p>`);
   } catch (error) {
-
     console.error(error);
-
-    out("PDF बनाने में समस्या हुई।");
-
+    out("PDF create nahi hua. Please try with different JPG/PNG images.");
   }
 }
 
-
-// =====================================================
-// HINDI DICTIONARY
-// =====================================================
+// ---------- Hindi / Gujarati typing ----------
+// Basic common-word conversion. This is not a full online
+// transliteration engine; unknown words remain unchanged.
 
 const hindiWords = {
-
-  mera: "मेरा",
-  meri: "मेरी",
-  mere: "मेरे",
-
-  naam: "नाम",
-
-  hai: "है",
-  hain: "हैं",
-
-  main: "मैं",
-  mai: "मैं",
-  mein: "में",
-  me: "में",
-
-  aap: "आप",
-  ap: "आप",
-
-  tum: "तुम",
-  hum: "हम",
-
-  ka: "का",
-  ki: "की",
-  ke: "के",
-
-  ko: "को",
-  se: "से",
-  par: "पर",
-
-  aur: "और",
-  or: "और",
-
-  ye: "ये",
-  yah: "यह",
-  yeh: "यह",
-
-  woh: "वह",
-  wo: "वो",
-
-  kya: "क्या",
-  kyun: "क्यों",
-  kyu: "क्यों",
-
-  kaise: "कैसे",
-  kab: "कब",
-  kahan: "कहाँ",
-
-  achha: "अच्छा",
-  accha: "अच्छा",
-  achhi: "अच्छी",
-  achche: "अच्छे",
-
-  bahut: "बहुत",
-  bilkul: "बिल्कुल",
-
-  dhanyavad: "धन्यवाद",
-  shukriya: "शुक्रिया",
-
-  pyaar: "प्यार",
-  pyar: "प्यार",
-
-  dost: "दोस्त",
-  dosti: "दोस्ती",
-
-  ghar: "घर",
-
-  paani: "पानी",
-  pani: "पानी",
-
-  khana: "खाना",
-  khaana: "खाना",
-
-  mujhe: "मुझे",
-  mujko: "मुझको",
-
-  tumhe: "तुम्हें",
-  aapko: "आपको",
-
-  hume: "हमें",
-  hame: "हमें",
-
-  nahi: "नहीं",
-  nahin: "नहीं",
-
-  haan: "हाँ",
-  han: "हाँ",
-
-  abhi: "अभी",
-  aaj: "आज",
-  kal: "कल",
-
-  subah: "सुबह",
-  shaam: "शाम",
-  raat: "रात",
-  din: "दिन",
-
-  bada: "बड़ा",
-  badi: "बड़ी",
-  bade: "बड़े",
-
-  chhota: "छोटा",
-  choti: "छोटी",
-
-  bahar: "बाहर",
-  andar: "अंदर",
-
-  upar: "ऊपर",
-  neeche: "नीचे",
-
-  samay: "समय",
-  waqt: "वक्त",
-
-  zindagi: "ज़िंदगी",
-  jindagi: "ज़िंदगी",
-
-  duniya: "दुनिया",
-
-  bharat: "भारत",
-  india: "इंडिया",
-  hindustan: "हिंदुस्तान",
-
-  bhagwan: "भगवान",
-  ram: "राम",
-  krishna: "कृष्ण",
-  shree: "श्री",
-
-  mata: "माता",
-  pita: "पिता",
-  maa: "माँ",
-  papa: "पापा",
-
-  bhai: "भाई",
-  behen: "बहन",
-
-  beta: "बेटा",
-  beti: "बेटी",
-
-  ladka: "लड़का",
-  ladki: "लड़की",
-
-  school: "स्कूल",
-  college: "कॉलेज",
-
-  kitab: "किताब",
-  kitaab: "किताब",
-
-  mobile: "मोबाइल",
-  phone: "फोन",
-
-  computer: "कंप्यूटर",
-  internet: "इंटरनेट",
-  website: "वेबसाइट",
-
-  paisa: "पैसा",
-  paise: "पैसे",
-
-  kaam: "काम",
-
-  kar: "कर",
-  karo: "करो",
-  karna: "करना",
-  karta: "करता",
-  karti: "करती",
-  karte: "करते",
-
-  kiya: "किया",
-
-  ja: "जा",
-  jao: "जाओ",
-  jaana: "जाना",
-  jana: "जाना",
-
-  aana: "आना",
-  aao: "आओ",
-
-  gaya: "गया",
-  gayi: "गई",
-  gaye: "गए",
-
-  aaya: "आया",
-  aayi: "आई",
-
-  bol: "बोल",
-  bolo: "बोलो",
-
-  baat: "बात",
-
-  sun: "सुन",
-  suno: "सुनो",
-
-  dekh: "देख",
-  dekho: "देखो",
-
-  likh: "लिख",
-  likho: "लिखो",
-
-  padh: "पढ़",
-  padho: "पढ़ो",
-
-  samajh: "समझ",
-  samjho: "समझो",
-
-  chahiye: "चाहिए",
-
-  sakta: "सकता",
-  sakti: "सकती",
-  sakte: "सकते",
-
-  hoga: "होगा",
-  hogi: "होगी",
-  honge: "होंगे",
-
-  tha: "था",
-  thi: "थी",
-  the: "थे",
-
-  ek: "एक",
-  do: "दो",
-  teen: "तीन",
-  char: "चार",
-  paanch: "पाँच",
-
-  apna: "अपना",
-  apni: "अपनी",
-  apne: "अपने",
-
-  sab: "सब",
-  sabhi: "सभी",
-
-  kuch: "कुछ",
-  koi: "कोई",
-
-  kaun: "कौन",
-  kiska: "किसका",
-
-  kitna: "कितना",
-  kitne: "कितने",
-  kitni: "कितनी",
-
-  kyunki: "क्योंकि",
-  lekin: "लेकिन",
-
-  agar: "अगर",
-  to: "तो",
-
-  jab: "जब",
-  tab: "तब",
-
-  bhi: "भी",
-  hi: "ही",
-  sirf: "सिर्फ",
-
-  phir: "फिर",
-  pehle: "पहले",
-  baad: "बाद",
-
-  saath: "साथ",
-  bina: "बिना",
-
-  liye: "लिए",
-  liya: "लिया",
-
-  dena: "देना",
-  lena: "लेना",
-  lelo: "ले लो",
-
-  thik: "ठीक",
-  theek: "ठीक",
-
-  sahi: "सही",
-  galat: "गलत",
-
-  zaroor: "ज़रूर",
-  jarur: "जरूर",
-  zaroori: "ज़रूरी"
+  "namaste":"नमस्ते", "namaskar":"नमस्कार", "mera":"मेरा",
+  "meri":"मेरी", "mere":"मेरे", "naam":"नाम", "hai":"है",
+  "hain":"हैं", "ho":"हो", "ka":"का", "ki":"की", "ke":"के",
+  "ko":"को", "se":"से", "mein":"में", "mai":"मैं",
+  "main":"मैं", "hum":"हम", "ham":"हम", "aap":"आप",
+  "ap":"आप", "tum":"तुम", "kya":"क्या", "kyu":"क्यों",
+  "kyon":"क्यों", "kaise":"कैसे", "kaisi":"कैसी",
+  "accha":"अच्छा", "achha":"अच्छा", "achhi":"अच्छी",
+  "bahut":"बहुत", "nahi":"नहीं", "nahin":"नहीं",
+  "haan":"हाँ", "han":"हाँ", "ji":"जी", "shukriya":"शुक्रिया",
+  "dhanyavad":"धन्यवाद", "pyaar":"प्यार", "pyar":"प्यार",
+  "dost":"दोस्त", "dosti":"दोस्ती", "ghar":"घर",
+  "paani":"पानी", "khana":"खाना", "khao":"खाओ",
+  "peena":"पीना", "aaj":"आज", "kal":"कल", "ab":"अब",
+  "naam":"नाम", "mera":"मेरा", "naam":"नाम",
+  "bharat":"भारत", "india":"इंडिया", "hindustan":"हिंदुस्तान",
+  "ram":"राम", "shree":"श्री", "shri":"श्री",
+  "bhagwan":"भगवान", "bhagavan":"भगवान",
+  "mata":"माता", "pita":"पिता", "papa":"पापा",
+  "maa":"माँ", "ma":"माँ", "beta":"बेटा", "beti":"बेटी",
+  "bhai":"भाई", "behen":"बहन", "behan":"बहन",
+  "aapka":"आपका", "aapki":"आपकी", "aapke":"आपके",
+  "mera naam":"मेरा नाम", "kaise ho":"कैसे हो",
+  "kaise hain":"कैसे हैं", "theek ho":"ठीक हो",
+  "thik hai":"ठीक है", "theek hai":"ठीक है",
+  "mera naam abhishek hai":"मेरा नाम अभिषेक है"
 };
-
-
-// =====================================================
-// HINDI CONVERTER
-// =====================================================
-
-function convertHindi() {
-
-  const inputElement =
-    document.getElementById("romanHindi");
-
-  const outputElement =
-    document.getElementById("hindiOutput");
-
-  if (!inputElement || !outputElement) {
-    return;
-  }
-
-  const input =
-    inputElement.value.trim();
-
-  if (!input) {
-
-    outputElement.textContent = "";
-
-    out("पहले English में कुछ लिखें।");
-
-    return;
-  }
-
-  const result =
-    input
-      .split(/\s+/)
-      .map(function(word) {
-
-        const punctuation =
-          word.match(/[.,!?;:]+$/);
-
-        const clean =
-          word
-            .toLowerCase()
-            .replace(/[.,!?;:]+$/, "");
-
-        const converted =
-          hindiWords[clean] || word;
-
-        return (
-          converted +
-          (
-            punctuation
-              ? punctuation[0]
-              : ""
-          )
-        );
-      })
-      .join(" ");
-
-  outputElement.textContent = result;
-}
-
-
-// =====================================================
-// COPY HINDI
-// =====================================================
-
-function copyHindi() {
-
-  const output =
-    document.getElementById("hindiOutput");
-
-  if (!output) {
-    return;
-  }
-
-  const text =
-    output.textContent.trim();
-
-  if (!text) {
-
-    out("पहले Hindi text बनाएं।");
-
-    return;
-  }
-
-  if (
-    navigator.clipboard &&
-    window.isSecureContext
-  ) {
-
-    navigator.clipboard
-      .writeText(text)
-      .then(function() {
-
-        out("Hindi text copied! ✅");
-
-      })
-      .catch(function() {
-
-        fallbackCopy(text);
-
-      });
-
-  } else {
-
-    fallbackCopy(text);
-
-  }
-}
-
-
-// =====================================================
-// FALLBACK COPY
-// =====================================================
-
-function fallbackCopy(text) {
-
-  const textarea =
-    document.createElement("textarea");
-
-  textarea.value = text;
-
-  textarea.style.position = "fixed";
-  textarea.style.left = "-9999px";
-
-  document.body.appendChild(textarea);
-
-  textarea.focus();
-  textarea.select();
-
-  try {
-
-    document.execCommand("copy");
-
-    out("Hindi text copied! ✅");
-
-  } catch (error) {
-
-    out("Copy नहीं हो पाया। Text को manually select करके copy करें.");
-
-  }
-
-  document.body.removeChild(textarea);
-}
-
-
-// =====================================================
-// DOWNLOAD HINDI
-// =====================================================
-
-function downloadHindi() {
-
-  const output =
-    document.getElementById("hindiOutput");
-
-  if (!output) {
-    return;
-  }
-
-  const text =
-    output.textContent.trim();
-
-  if (!text) {
-
-    out("पहले Hindi text बनाएं।");
-
-    return;
-  }
-
-  downloadTextFile(
-    text,
-    "IndiaToolHub-Hindi.txt"
-  );
-}
-
-
-// =====================================================
-// GUJARATI DICTIONARY
-// =====================================================
 
 const gujaratiWords = {
-
-  maru: "મારું",
-  maaru: "મારું",
-
-  maro: "મારો",
-  mari: "મારી",
-  mara: "મારા",
-
-  naam: "નામ",
-
-  che: "છે",
-  chhe: "છે",
-
-  chu: "છું",
-  chhu: "છું",
-
-  cho: "છો",
-  chho: "છો",
-
-  hu: "હું",
-  hun: "હું",
-
-  tame: "તમે",
-
-  tamaru: "તમારું",
-  tamaro: "તમારો",
-  tamari: "તમારી",
-
-  aap: "આપ",
-
-  su: "શું",
-  shu: "શું",
-
-  kem: "કેમ",
-
-  kya: "ક્યાં",
-
-  kyare: "ક્યારે",
-
-  kemcho: "કેમ છો",
-
-  maja: "મજા",
-
-  saras: "સરસ",
-
-  nathi: "નથી",
-  nahi: "નહીં",
-
-  ha: "હા",
-  haa: "હા",
-
-  ane: "અને",
-  pan: "પણ",
-
-  athva: "અથવા",
-
-  ghar: "ઘર",
-  ghare: "ઘરે",
-
-  bahar: "બહાર",
-  andar: "અંદર",
-
-  paani: "પાણી",
-  pani: "પાણી",
-
-  jamvanu: "જમવાનું",
-
-  khavu: "ખાવું",
-  khay: "ખાય",
-
-  pivu: "પીવું",
-
-  aavvu: "આવવું",
-  aavo: "આવો",
-  aavi: "આવી",
-
-  jav: "જાવ",
-  javu: "જવું",
-  jao: "જાઓ",
-
-  karo: "કરો",
-  karvu: "કરવું",
-  karu: "કરું",
-  karie: "કરીએ",
-
-  joie: "જોઈએ",
-  joiye: "જોઈએ",
-
-  mane: "મને",
-  tamne: "તમને",
-  amne: "અમને",
-
-  dost: "દોસ્ત",
-  mitra: "મિત્ર",
-
-  bhai: "ભાઈ",
-  behen: "બહેન",
-  ben: "બેન",
-
-  maa: "મા",
-  mata: "માતા",
-  pita: "પિતા",
-  papa: "પપ્પા",
-
-  dikro: "દીકરો",
-  dikri: "દીકરી",
-
-  chokro: "છોકરો",
-  chokri: "છોકરી",
-
-  balak: "બાળક",
-
-  ram: "રામ",
-  sita: "સીતા",
-  krishna: "કૃષ્ણ",
-
-  jay: "જય",
-  shree: "શ્રી",
-  bhagwan: "ભગવાન",
-
-  gujarat: "ગુજરાત",
-  gujarati: "ગુજરાતી",
-
-  bharat: "ભારત",
-  india: "ઇન્ડિયા",
-
-  namaste: "નમસ્તે",
-
-  aabhar: "આભાર",
-  dhanyavad: "ધન્યવાદ",
-
-  maaf: "માફ",
-
-  ek: "એક",
-  be: "બે",
-  tran: "ત્રણ",
-  char: "ચાર",
-  panch: "પાંચ",
-  chh: "છ",
-  saat: "સાત",
-  aath: "આઠ",
-  nav: "નવ",
-  das: "દસ",
-
-  aaje: "આજે",
-  aaj: "આજે",
-
-  kale: "કાલે",
-
-  savar: "સવાર",
-  bapor: "બપોર",
-  sanj: "સાંજ",
-  raat: "રાત",
-  divas: "દિવસ",
-
-  kaam: "કામ",
-  paisa: "પૈસા",
-  samay: "સમય",
-
-  aav: "આવ",
-  jaldi: "જલ્દી",
-
-  bahu: "બહુ",
-  khub: "ખૂબ",
-
-  saru: "સારું",
-  sari: "સારી",
-  saro: "સારો",
-
-  motu: "મોટું",
-  moto: "મોટો",
-
-  nani: "નાની",
-  nanu: "નાનું",
-
-  navo: "નવો",
-  navi: "નવી",
-  navu: "નવું"
+  "namaste":"નમસ્તે", "namaskar":"નમસ્કાર", "maru":"મારું",
+  "maro":"મારો", "mari":"મારી", "naam":"નામ", "che":"છે",
+  "chhe":"છે", "hu":"હું", "hun":"હું", "mane":"મને",
+  "tame":"તમે", "tamne":"તમને", "aap":"આપ", "shu":"શું",
+  "su":"શું", "kem":"કેમ", "cho":"છો", "chho":"છો",
+  "majama":"મજામાં", "maja":"મજા", "saru":"સારું",
+  "saras":"સરસ", "bahu":"બહુ", "nathi":"નથી",
+  "ha":"હા", "haa":"હા", "na":"ના", "pani":"પાણી",
+  "paani":"પાણી", "ghar":"ઘર", "prem":"પ્રેમ",
+  "dost":"દોસ્ત", "bhai":"ભાઈ", "ben":"બેન",
+  "mata":"માતા", "pita":"પિતા", "pappa":"પપ્પા",
+  "maa":"મા", "beta":"બેટા", "dikro":"દીકરો",
+  "dikri":"દીકરી", "aaje":"આજે", "aavjo":"આવજો",
+  "abhar":"આભાર", "dhanyavad":"ધન્યવાદ",
+  "ram":"રામ", "shree":"શ્રી", "bhagwan":"ભગવાન",
+  "bharat":"ભારત", "gujarat":"ગુજરાત",
+  "kem cho":"કેમ છો", "majama cho":"મજામાં છો",
+  "maru naam":"મારું નામ", "maru naam abhishek che":"મારું નામ અભિષેક છે"
 };
 
+function convertWords(text, dictionary) {
+  return text.split(/(\s+)/).map(part => {
+    if (/^\s+$/.test(part)) return part;
+    const key = part.toLowerCase().replace(/[.,!?;:]+$/, "");
+    const punctuation = part.slice(key.length);
+    return (dictionary[key] || part.slice(0, key.length)) + punctuation;
+  }).join("");
+}
 
-// =====================================================
-// GUJARATI CONVERTER
-// =====================================================
+function convertHindi() {
+  const input = getElement("romanHindi");
+  const output = getElement("hindiOutput");
+  if (!input || !output) return;
+
+  const text = input.value.trim();
+  if (!text) {
+    output.textContent = "Please enter some text first.";
+    return;
+  }
+
+  // Replace known multi-word phrases first, then individual words.
+  let converted = text;
+  Object.keys(hindiWords)
+    .filter(key => key.includes(" "))
+    .sort((a, b) => b.length - a.length)
+    .forEach(key => {
+      converted = converted.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), hindiWords[key]);
+    });
+
+  converted = convertWords(converted, hindiWords);
+  output.textContent = converted;
+}
+
+function copyHindi() {
+  const output = getElement("hindiOutput");
+  if (output && output.textContent.trim()) {
+    copyText(output.textContent, "Hindi text copied!");
+  }
+}
+
+function downloadHindi() {
+  const output = getElement("hindiOutput");
+  if (output && output.textContent.trim()) {
+    downloadText(output.textContent, "IndiaToolHub-Hindi.txt");
+  }
+}
+
+function clearHindi() {
+  if (getElement("romanHindi")) getElement("romanHindi").value = "";
+  if (getElement("hindiOutput")) getElement("hindiOutput").textContent = "";
+}
 
 function convertGujarati() {
+  const input = getElement("romanGujarati");
+  const output = getElement("gujaratiOutput");
+  if (!input || !output) return;
 
-  const inputElement =
-    document.getElementById("romanGujarati");
-
-  const outputElement =
-    document.getElementById("gujaratiOutput");
-
-  if (!inputElement || !outputElement) {
+  const text = input.value.trim();
+  if (!text) {
+    output.textContent = "Please enter some text first.";
     return;
   }
 
-  const input =
-    inputElement.value.trim();
+  let converted = text;
+  Object.keys(gujaratiWords)
+    .filter(key => key.includes(" "))
+    .sort((a, b) => b.length - a.length)
+    .forEach(key => {
+      converted = converted.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), gujaratiWords[key]);
+    });
 
-  if (!input) {
-
-    outputElement.textContent = "";
-
-    out("પહેલા English માં કંઈક લખો.");
-
-    return;
-  }
-
-  const result =
-    input
-      .split(/\s+/)
-      .map(function(word) {
-
-        const punctuation =
-          word.match(/[.,!?;:]+$/);
-
-        const clean =
-          word
-            .toLowerCase()
-            .replace(/[.,!?;:]+$/, "");
-
-        const converted =
-          gujaratiWords[clean] || word;
-
-        return (
-          converted +
-          (
-            punctuation
-              ? punctuation[0]
-              : ""
-          )
-        );
-      })
-      .join(" ");
-
-  outputElement.textContent = result;
+  converted = convertWords(converted, gujaratiWords);
+  output.textContent = converted;
 }
-
-
-// =====================================================
-// COPY GUJARATI
-// =====================================================
 
 function copyGujarati() {
-
-  const output =
-    document.getElementById("gujaratiOutput");
-
-  if (!output) {
-    return;
-  }
-
-  const text =
-    output.textContent.trim();
-
-  if (!text) {
-
-    out("પહેલા Gujarati text બનાવો.");
-
-    return;
-  }
-
-  if (
-    navigator.clipboard &&
-    window.isSecureContext
-  ) {
-
-    navigator.clipboard
-      .writeText(text)
-      .then(function() {
-
-        out("Gujarati text copied! ✅");
-
-      })
-      .catch(function() {
-
-        fallbackCopy(text);
-
-      });
-
-  } else {
-
-    fallbackCopy(text);
-
+  const output = getElement("gujaratiOutput");
+  if (output && output.textContent.trim()) {
+    copyText(output.textContent, "Gujarati text copied!");
   }
 }
-
-
-// =====================================================
-// DOWNLOAD GUJARATI
-// =====================================================
 
 function downloadGujarati() {
-
-  const output =
-    document.getElementById("gujaratiOutput");
-
-  if (!output) {
-    return;
+  const output = getElement("gujaratiOutput");
+  if (output && output.textContent.trim()) {
+    downloadText(output.textContent, "IndiaToolHub-Gujarati.txt");
   }
-
-  const text =
-    output.textContent.trim();
-
-  if (!text) {
-
-    out("પહેલા Gujarati text બનાવો.");
-
-    return;
-  }
-
-  downloadTextFile(
-    text,
-    "IndiaToolHub-Gujarati.txt"
-  );
 }
 
-
-// =====================================================
-// DOWNLOAD TEXT FILE
-// =====================================================
-
-function downloadTextFile(text, filename) {
-
-  const blob =
-    new Blob(
-      [text],
-      {
-        type: "text/plain;charset=utf-8"
-      }
-    );
-
-  const url =
-    URL.createObjectURL(blob);
-
-  const a =
-    document.createElement("a");
-
-  a.href = url;
-
-  a.download = filename;
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  document.body.removeChild(a);
-
-  setTimeout(function() {
-
-    URL.revokeObjectURL(url);
-
-  }, 1000);
+function downloadText(text, filename) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
-
-// =====================================================
-// ESC KEY - CLOSE MODAL
-// =====================================================
-
-document.addEventListener(
-  "keydown",
-  function(event) {
-
-    if (event.key === "Escape") {
-
-      closeTool();
-
-    }
-
-  }
-);
+// ---------- End of IndiaToolHub app.js ----------
