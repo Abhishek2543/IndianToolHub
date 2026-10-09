@@ -526,3 +526,604 @@ function calcGST() {
   const amount = Number(amountInput.value);
   const rate = Number(rateInput.value);
   const type = typeInput.value;
+
+  if (
+    !amountInput.value.trim() ||
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    showMessage(result, "Please enter an amount greater than zero.");
+    return;
+  }
+
+  let base;
+  let gst;
+  let total;
+
+  if (type === "add") {
+    base = amount;
+    gst = base * rate / 100;
+    total = base + gst;
+  } else {
+    total = amount;
+    base = total * 100 / (100 + rate);
+    gst = total - base;
+  }
+
+  result.hidden = false;
+  result.innerHTML = resultCards("GST Summary", [
+    { value: money(base), label: "Base Amount" },
+    { value: money(gst), label: `GST (${rate}%)` },
+    { value: money(total), label: "Final Amount" }
+  ]) +
+    `<button type="button" onclick="copyGSTResult()">Copy Result</button>`;
+}
+
+function resetGST() {
+  if (getElement("gstAmount")) getElement("gstAmount").value = "";
+  if (getElement("gstRate")) getElement("gstRate").value = "18";
+  if (getElement("gstType")) getElement("gstType").value = "add";
+
+  clearResult("gstResult");
+}
+
+function copyGSTResult() {
+  const result = getElement("gstResult");
+  if (result && !result.hidden) {
+    copyText(result.innerText, "GST result copied!");
+  }
+}
+
+// ---------- Discount Calculator ----------
+
+function calcDiscount() {
+  const priceInput = getElement("price");
+  const discInput = getElement("disc");
+
+  if (!priceInput || !discInput) return;
+
+  if (!priceInput.value.trim() || !discInput.value.trim()) {
+    out("<p>Please enter price and discount percentage.</p>");
+    return;
+  }
+
+  const price = Number(priceInput.value);
+  const disc = Number(discInput.value);
+
+  if (
+    !Number.isFinite(price) || price <= 0 ||
+    !Number.isFinite(disc) || disc < 0 || disc > 100
+  ) {
+    out("<p>Price must be positive and discount must be between 0% and 100%.</p>");
+    return;
+  }
+
+  const saved = price * disc / 100;
+  const finalPrice = price - saved;
+
+  out(`
+    <h3>Discount Summary</h3>
+    <div class="age-result-grid">
+      <div class="age-result-card">
+        <strong>${money(saved)}</strong>
+        <span>You Save</span>
+      </div>
+      <div class="age-result-card">
+        <strong>${money(finalPrice)}</strong>
+        <span>Final Price</span>
+      </div>
+    </div>
+    <button type="button" onclick="copyText('${finalPrice.toFixed(2)}', 'Final price copied!')">Copy Final Price</button>
+  `);
+}
+
+function resetDiscount() {
+  resetFields(["price", "disc"]);
+  out("");
+}
+
+// ---------- BMI Calculator ----------
+
+function calcBMI() {
+  const weightInput = getElement("weight");
+  const heightInput = getElement("height");
+
+  if (!weightInput || !heightInput) return;
+
+  if (!weightInput.value.trim() || !heightInput.value.trim()) {
+    out("<p>Please enter weight and height.</p>");
+    return;
+  }
+
+  const weight = Number(weightInput.value);
+  const height = Number(heightInput.value);
+
+  if (
+    !Number.isFinite(weight) || weight <= 0 ||
+    !Number.isFinite(height) || height <= 0
+  ) {
+    out("<p>Please enter valid positive measurements.</p>");
+    return;
+  }
+
+  const bmi = weight / Math.pow(height / 100, 2);
+  let category;
+
+  if (bmi < 18.5) category = "Underweight";
+  else if (bmi < 25) category = "Normal range";
+  else if (bmi < 30) category = "Overweight";
+  else category = "Obesity range";
+
+  out(`
+    <h3>BMI Result</h3>
+    <div class="age-result-grid">
+      <div class="age-result-card">
+        <strong>${bmi.toFixed(1)}</strong>
+        <span>BMI</span>
+      </div>
+      <div class="age-result-card">
+        <strong>${category}</strong>
+        <span>Category</span>
+      </div>
+    </div>
+    <p class="age-note">BMI is a screening measure, not a medical diagnosis.</p>
+    <button type="button" onclick="copyText('${bmi.toFixed(1)}', 'BMI copied!')">Copy BMI</button>
+  `);
+}
+
+function resetBMI() {
+  resetFields(["weight", "height"]);
+  out("");
+}
+
+// ---------- Image Compressor ----------
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Image loading failed"));
+    image.src = src;
+  });
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("File reading failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) resolve(blob);
+      else reject(new Error("Image compression failed"));
+    }, type, quality);
+  });
+}
+
+async function compressImage() {
+  const fileInput = getElement("imageFile");
+  const qualityInput = getElement("imageQuality");
+
+  if (!fileInput || !qualityInput) return;
+
+  const file = fileInput.files && fileInput.files[0];
+  const quality = Number(qualityInput.value);
+
+  if (!file) {
+    out("<p>Please select an image first.</p>");
+    return;
+  }
+
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    out("<p>Please select a JPG, PNG or WebP image.</p>");
+    return;
+  }
+
+  if (file.size > 30 * 1024 * 1024) {
+    out("<p>Please choose an image smaller than 30 MB.</p>");
+    return;
+  }
+
+  out("<p>Compressing image… please wait.</p>");
+
+  try {
+    const data = await readFileAsDataURL(file);
+    const image = await loadImage(data);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth || image.width;
+    canvas.height = image.naturalHeight || image.height;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) throw new Error("Canvas is unavailable");
+
+    // JPEG does not support transparency, so use a white background.
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, 0, 0);
+
+    const blob = await canvasToBlob(canvas, "image/jpeg", quality);
+
+    if (currentImageURL) URL.revokeObjectURL(currentImageURL);
+    currentImageURL = URL.createObjectURL(blob);
+
+    const saved = file.size > 0
+      ? ((1 - blob.size / file.size) * 100)
+      : 0;
+
+    const sizeMessage = blob.size < file.size
+      ? `File size reduced by ${saved.toFixed(1)}%.`
+      : "The compressed file is not smaller at this quality setting.";
+
+    out(`
+      <h3>Compressed Image Ready</h3>
+      <div class="age-result-grid">
+        <div class="age-result-card">
+          <strong>${(file.size / 1024).toFixed(1)} KB</strong>
+          <span>Original Size</span>
+        </div>
+        <div class="age-result-card">
+          <strong>${(blob.size / 1024).toFixed(1)} KB</strong>
+          <span>Compressed Size</span>
+        </div>
+      </div>
+      <p>${sizeMessage}</p>
+      <a class="download-link" href="${currentImageURL}" download="IndiaToolHub-compressed.jpg">Download Compressed Image</a>
+    `);
+  } catch (error) {
+    console.error(error);
+    out("<p>Image process nahi hui. Please try another image.</p>");
+  }
+}
+
+// ---------- JPG / PNG to PDF ----------
+
+async function createPDF() {
+  const input = getElement("pdfFiles");
+
+  if (!input) return;
+
+  const files = Array.from(input.files || []).filter(file =>
+    ["image/jpeg", "image/png"].includes(file.type)
+  );
+
+  if (!files.length) {
+    out("<p>Please select at least one JPG or PNG image.</p>");
+    return;
+  }
+
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    out("<p>PDF library load nahi hui. Internet connection aur index.html mein jsPDF script check karein.</p>");
+    return;
+  }
+
+  if (files.some(file => file.size > 25 * 1024 * 1024)) {
+    out("<p>Please use images smaller than 25 MB each.</p>");
+    return;
+  }
+
+  out("<p>Creating PDF… please wait.</p>");
+
+  try {
+    const { jsPDF } = window.jspdf;
+    let pdf = null;
+
+    for (const file of files) {
+      const data = await readFileAsDataURL(file);
+      const image = await loadImage(data);
+
+      const orientation = image.width > image.height
+        ? "landscape"
+        : "portrait";
+
+      if (!pdf) {
+        pdf = new jsPDF({
+          orientation,
+          unit: "mm",
+          format: "a4"
+        });
+      } else {
+        pdf.addPage("a4", orientation);
+      }
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const maxWidth = pageWidth - margin * 2;
+      const maxHeight = pageHeight - margin * 2;
+
+      const scale = Math.min(
+        maxWidth / image.width,
+        maxHeight / image.height
+      );
+
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const x = (pageWidth - width) / 2;
+      const y = (pageHeight - height) / 2;
+
+      pdf.addImage(
+        data,
+        file.type === "image/png" ? "PNG" : "JPEG",
+        x,
+        y,
+        width,
+        height
+      );
+    }
+
+    if (!pdf) {
+      out("<p>No supported images were found.</p>");
+      return;
+    }
+
+    pdf.save("IndiaToolHub-images.pdf");
+
+    out(`
+      <h3>PDF Created Successfully!</h3>
+      <p>${files.length} image(s) added to your PDF.</p>
+    `);
+  } catch (error) {
+    console.error(error);
+    out("<p>PDF create nahi hua. Please try with different JPG/PNG images.</p>");
+  }
+}
+
+// ---------- Hindi Typing ----------
+// Basic common-word conversion, not a full transliteration engine.
+
+const hindiWords = {
+  namaste: "नमस्ते",
+  namaskar: "नमस्कार",
+  mera: "मेरा",
+  meri: "मेरी",
+  mere: "मेरे",
+  naam: "नाम",
+  hai: "है",
+  hain: "हैं",
+  ho: "हो",
+  ka: "का",
+  ki: "की",
+  ke: "के",
+  ko: "को",
+  se: "से",
+  mein: "में",
+  mai: "मैं",
+  main: "मैं",
+  hum: "हम",
+  ham: "हम",
+  aap: "आप",
+  tum: "तुम",
+  kya: "क्या",
+  kyu: "क्यों",
+  kyon: "क्यों",
+  kaise: "कैसे",
+  kaisi: "कैसी",
+  accha: "अच्छा",
+  achha: "अच्छा",
+  achhi: "अच्छी",
+  bahut: "बहुत",
+  nahi: "नहीं",
+  nahin: "नहीं",
+  haan: "हाँ",
+  han: "हाँ",
+  ji: "जी",
+  shukriya: "शुक्रिया",
+  dhanyavad: "धन्यवाद",
+  pyaar: "प्यार",
+  pyar: "प्यार",
+  dost: "दोस्त",
+  dosti: "दोस्ती",
+  ghar: "घर",
+  paani: "पानी",
+  khana: "खाना",
+  khao: "खाओ",
+  peena: "पीना",
+  aaj: "आज",
+  kal: "कल",
+  ab: "अब",
+  bharat: "भारत",
+  india: "इंडिया",
+  hindustan: "हिंदुस्तान",
+  ram: "राम",
+  shree: "श्री",
+  shri: "श्री",
+  bhagwan: "भगवान",
+  mata: "माता",
+  pita: "पिता",
+  papa: "पापा",
+  maa: "माँ",
+  beta: "बेटा",
+  beti: "बेटी",
+  bhai: "भाई",
+  behen: "बहन",
+  behan: "बहन",
+  aapka: "आपका",
+  aapki: "आपकी",
+  aapke: "आपके",
+  "kaise ho": "कैसे हो",
+  "kaise hain": "कैसे हैं",
+  "theek ho": "ठीक हो",
+  "thik hai": "ठीक है",
+  "theek hai": "ठीक है",
+  "mera naam": "मेरा नाम",
+  "mera naam abhishek hai": "मेरा नाम अभिषेक है"
+};
+
+// ---------- Gujarati Typing ----------
+
+const gujaratiWords = {
+  namaste: "નમસ્તે",
+  namaskar: "નમસ્કાર",
+  maru: "મારું",
+  maro: "મારો",
+  mari: "મારી",
+  naam: "નામ",
+  che: "છે",
+  chhe: "છે",
+  hu: "હું",
+  hun: "હું",
+  mane: "મને",
+  tame: "તમે",
+  tamne: "તમને",
+  aap: "આપ",
+  shu: "શું",
+  su: "શું",
+  kem: "કેમ",
+  cho: "છો",
+  chho: "છો",
+  majama: "મજામાં",
+  maja: "મજા",
+  saru: "સારું",
+  saras: "સરસ",
+  bahu: "બહુ",
+  nathi: "નથી",
+  ha: "હા",
+  haa: "હા",
+  na: "ના",
+  pani: "પાણી",
+  paani: "પાણી",
+  ghar: "ઘર",
+  prem: "પ્રેમ",
+  dost: "દોસ્ત",
+  bhai: "ભાઈ",
+  ben: "બેન",
+  mata: "માતા",
+  pita: "પિતા",
+  pappa: "પપ્પા",
+  maa: "મા",
+  beta: "બેટા",
+  dikro: "દીકરો",
+  dikri: "દીકરી",
+  aaje: "આજે",
+  aavjo: "આવજો",
+  abhar: "આભાર",
+  dhanyavad: "ધન્યવાદ",
+  ram: "રામ",
+  shree: "શ્રી",
+  bhagwan: "ભગવાન",
+  bharat: "ભારત",
+  gujarat: "ગુજરાત",
+  "kem cho": "કેમ છો",
+  "majama cho": "મજામાં છો",
+  "maru naam": "મારું નામ",
+  "maru naam abhishek che": "મારું નામ અભિષેક છે"
+};
+
+function convertWords(text, dictionary) {
+  const phrases = Object.keys(dictionary)
+    .filter(key => key.includes(" "))
+    .sort((a, b) => b.length - a.length);
+
+  let converted = text;
+
+  // Convert known phrases before individual words.
+  for (const phrase of phrases) {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    converted = converted.replace(
+      new RegExp(`\\b${escaped}\\b`, "gi"),
+      dictionary[phrase]
+    );
+  }
+
+  return converted.split(/(\s+)/).map(part => {
+    if (!part || /^\s+$/.test(part)) return part;
+
+    // Keep punctuation attached to each word.
+    const match = part.match(/^([^.,!?;:]+)([.,!?;:]*)$/);
+
+    if (!match) return part;
+
+    const word = match[1];
+    const punctuation = match[2];
+    const key = word.toLowerCase();
+
+    return (dictionary[key] || word) + punctuation;
+  }).join("");
+}
+
+function convertHindi() {
+  const input = getElement("romanHindi");
+  const output = getElement("hindiOutput");
+
+  if (!input || !output) return;
+
+  const text = input.value.trim();
+
+  if (!text) {
+    output.textContent = "Please enter some text first.";
+    return;
+  }
+
+  output.textContent = convertWords(text, hindiWords);
+}
+
+function copyHindi() {
+  const output = getElement("hindiOutput");
+
+  if (output && output.textContent.trim()) {
+    copyText(output.textContent, "Hindi text copied!");
+  }
+}
+
+function downloadHindi() {
+  const output = getElement("hindiOutput");
+
+  if (output && output.textContent.trim()) {
+    downloadText(output.textContent, "IndiaToolHub-Hindi.txt");
+  }
+}
+
+function clearHindi() {
+  if (getElement("romanHindi")) getElement("romanHindi").value = "";
+  if (getElement("hindiOutput")) getElement("hindiOutput").textContent = "";
+}
+
+// ---------- Gujarati Functions ----------
+
+function convertGujarati() {
+  const input = getElement("romanGujarati");
+  const output = getElement("gujaratiOutput");
+
+  if (!input || !output) return;
+
+  const text = input.value.trim();
+
+  if (!text) {
+    output.textContent = "Please enter some text first.";
+    return;
+  }
+
+  output.textContent = convertWords(text, gujaratiWords);
+}
+
+function copyGujarati() {
+  const output = getElement("gujaratiOutput");
+
+  if (output && output.textContent.trim()) {
+    copyText(output.textContent, "Gujarati text copied!");
+  }
+}
+
+function downloadGujarati() {
+  const output = getElement("gujaratiOutput");
+
+  if (output && output.textContent.trim()) {
+    downloadText(output.textContent, "IndiaToolHub-Gujarati.txt");
+  }
+}
+
+function clearGujarati() {
+  if (getElement("romanGujarati")) getElement("romanGujarati").value = "";
+  if (getElement("gujaratiOutput")) getElement("gujaratiOutput").textContent = "";
+}
+
+// ---------- End of IndiaToolHub app.js ----------
