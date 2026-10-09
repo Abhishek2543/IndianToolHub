@@ -14,20 +14,33 @@ function openTool(type) {
 
   modal.hidden = false;
 
-  if (type === "age") {
-
-    content.innerHTML = `
+  
+if (type === "age") {
+  content.innerHTML = `
+    <div class="pro-tool">
+      <div class="pro-tool-icon">🎂</div>
       <h2>Age Calculator</h2>
+      <p class="tool-subtitle">
+        Calculate your exact age in seconds.
+      </p>
 
-      <label>Date of Birth</label>
-      <input type="date" id="dob">
+      <label for="dob">Date of Birth</label>
+      <input
+        type="date"
+        id="dob"
+        max="${new Date().toLocaleDateString("en-CA")}"
+      >
 
-      <button onclick="calcAge()">Calculate Age</button>
+      <div class="tool-actions">
+        <button onclick="calcAge()">Calculate Age</button>
+        <button class="reset-btn" onclick="resetAge()">Reset</button>
+      </div>
 
-      <div id="result"></div>
-    `;
+      <div id="ageResult" class="age-results" hidden></div>
+    </div>
+  `;
+}
 
-  }
 
 
   else if (type === "emi") {
