@@ -43,26 +43,35 @@ if (type === "age") {
 
 
 
-  else if (type === "emi") {
-
-    content.innerHTML = `
+  
+else if (type === "emi") {
+  content.innerHTML = `
+    <div class="pro-tool">
+      <div class="pro-tool-icon">💰</div>
       <h2>EMI Calculator</h2>
+      <p class="tool-subtitle">
+        Estimate your monthly loan payment.
+      </p>
 
-      <label>Loan Amount (₹)</label>
-      <input type="number" id="loan" placeholder="500000">
+      <label for="loan">Loan Amount (₹)</label>
+      <input type="number" id="loan" min="1" placeholder="e.g. 500000">
 
-      <label>Interest Rate (% per year)</label>
-      <input type="number" id="rate" placeholder="8.5" step="0.01">
+      <label for="rate">Annual Interest Rate (%)</label>
+      <input type="number" id="rate" min="0" step="0.01" placeholder="e.g. 8.5">
 
-      <label>Loan Period (Years)</label>
-      <input type="number" id="years" placeholder="5">
+      <label for="years">Loan Tenure (Years)</label>
+      <input type="number" id="years" min="1" max="50" step="1" placeholder="e.g. 5">
 
-      <button onclick="calcEMI()">Calculate EMI</button>
+      <div class="tool-actions">
+        <button onclick="calcEMI()">Calculate EMI</button>
+        <button class="reset-btn" onclick="resetEMI()">Reset</button>
+      </div>
 
-      <div id="result"></div>
-    `;
+      <div id="emiResult" class="age-results" hidden></div>
+    </div>
+  `;
+}
 
-  }
 
 
   else if (type === "percent") {
@@ -376,71 +385,104 @@ function copyAgeResult() {
 // EMI CALCULATOR
 // =====================================================
 
+
 function calcEMI() {
-
-  const loan =
-    Number(document.getElementById("loan").value);
-
-  const rate =
-    Number(document.getElementById("rate").value);
-
-  const years =
-    Number(document.getElementById("years").value);
+  const loan = Number(document.getElementById("loan").value);
+  const rate = Number(document.getElementById("rate").value);
+  const years = Number(document.getElementById("years").value);
+  const result = document.getElementById("emiResult");
 
   if (
-    !loan ||
-    !rate ||
-    !years ||
+    !Number.isFinite(loan) ||
+    !Number.isFinite(rate) ||
+    !Number.isFinite(years) ||
     loan <= 0 ||
     rate < 0 ||
-    years <= 0
+    years <= 0 ||
+    years > 50
   ) {
-
-    out("Please enter valid loan details.");
-
+    result.hidden = false;
+    result.innerHTML = "<p>Please enter valid loan details. Tenure must be 50 years or less.</p>";
     return;
   }
 
-  const months = years * 12;
-
-  const monthlyRate =
-    rate / 12 / 100;
+  const months = Math.round(years * 12);
+  const monthlyRate = rate / 1200;
 
   let emi;
 
   if (monthlyRate === 0) {
-
     emi = loan / months;
-
   } else {
-
-    emi =
-      loan *
-      monthlyRate *
-      Math.pow(
-        1 + monthlyRate,
-        months
-      ) /
-      (
-        Math.pow(
-          1 + monthlyRate,
-          months
-        ) - 1
-      );
+    const factor = Math.pow(1 + monthlyRate, months);
+    emi = loan * monthlyRate * factor / (factor - 1);
   }
 
-  const totalPayment =
-    emi * months;
+  const totalPayment = emi * months;
+  const totalInterest = totalPayment - loan;
 
-  const totalInterest =
-    totalPayment - loan;
+  const money = value =>
+    "₹" + value.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
 
-  out(`
-    <b>Monthly EMI:</b> ₹${emi.toFixed(2)}<br>
-    <b>Total Interest:</b> ₹${totalInterest.toFixed(2)}<br>
-    <b>Total Payment:</b> ₹${totalPayment.toFixed(2)}
-  `);
+  result.hidden = false;
+  result.innerHTML = `
+    <h3>Your Loan Summary</h3>
+
+    <div class="age-result-grid">
+      <div class="age-result-card">
+        <strong style="font-size:20px">${money(emi)}</strong>
+        <span>Monthly EMI</span>
+      </div>
+
+      <div class="age-result-card">
+        <strong style="font-size:20px">${money(totalInterest)}</strong>
+        <span>Total Interest</span>
+      </div>
+
+      <div class="age-result-card">
+        <strong style="font-size:20px">${money(totalPayment)}</strong>
+        <span>Total Payment</span>
+      </div>
+    </div>
+
+    <p class="age-note">
+      Loan Amount: ${money(loan)}<br>
+      Tenure: ${months} months
+    </p>
+
+    <button onclick="copyEMIResult()">Copy Result</button>
+  `;
 }
+
+function resetEMI() {
+  document.getElementById("loan").value = "";
+  document.getElementById("rate").value = "";
+  document.getElementById("years").value = "";
+
+  const result = document.getElementById("emiResult");
+  result.hidden = true;
+  result.innerHTML = "";
+}
+
+function copyEMIResult() {
+  const result = document.getElementById("emiResult");
+
+  if (!result || result.hidden) return;
+
+  const text = result.innerText;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => out("EMI result copied! ✅"))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
 
 
 // =====================================================
