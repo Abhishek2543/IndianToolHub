@@ -95,21 +95,48 @@ else if (type === "emi") {
 
   else if (type === "gst") {
 
-    content.innerHTML = `
+else if (type === "gst") {
+  content.innerHTML = `
+    <div class="pro-tool">
+      <div class="pro-tool-icon">🧾</div>
       <h2>GST Calculator</h2>
+      <p class="tool-subtitle">
+        Calculate GST amount and final price easily.
+      </p>
 
-      <label>Amount (₹)</label>
-      <input type="number" id="amt" placeholder="1000">
+      <label for="gstAmount">Amount (₹)</label>
+      <input
+        type="number"
+        id="gstAmount"
+        min="0"
+        step="0.01"
+        placeholder="e.g. 1000"
+      >
 
-      <label>GST Rate (%)</label>
-      <input type="number" id="gst" placeholder="18">
+      <label for="gstRate">GST Rate</label>
+      <select id="gstRate">
+        <option value="5">5% GST</option>
+        <option value="12">12% GST</option>
+        <option value="18" selected>18% GST</option>
+        <option value="28">28% GST</option>
+      </select>
 
-      <button onclick="calcGST()">Calculate GST</button>
+      <label>Calculation Type</label>
+      <select id="gstType">
+        <option value="add">Add GST to amount</option>
+        <option value="remove">Remove GST from total</option>
+      </select>
 
-      <div id="result"></div>
-    `;
+      <div class="tool-actions">
+        <button onclick="calcGST()">Calculate GST</button>
+        <button class="reset-btn" onclick="resetGST()">Reset</button>
+      </div>
 
-  }
+      <div id="gstResult" class="age-results" hidden></div>
+    </div>
+  `;
+}
+
 
 
   else if (type === "discount") {
@@ -520,34 +547,95 @@ function calcPercent() {
 // GST CALCULATOR
 // =====================================================
 
+
 function calcGST() {
+  const amountInput = document.getElementById("gstAmount");
+  const rateInput = document.getElementById("gstRate");
+  const typeInput = document.getElementById("gstType");
+  const result = document.getElementById("gstResult");
 
-  const amt =
-    Number(document.getElementById("amt").value);
-
-  const gst =
-    Number(document.getElementById("gst").value);
+  const amount = Number(amountInput.value);
+  const rate = Number(rateInput.value);
+  const type = typeInput.value;
 
   if (
-    amt <= 0 ||
-    gst < 0
+    amountInput.value.trim() === "" ||
+    !Number.isFinite(amount) ||
+    amount <= 0
   ) {
-
-    out("Please enter valid amount and GST rate.");
-
+    result.hidden = false;
+    result.innerHTML = "<p>Please enter a valid amount greater than zero.</p>";
     return;
   }
 
-  const gstAmount =
-    amt * gst / 100;
+  let baseAmount;
+  let gstAmount;
+  let totalAmount;
 
-  const total =
-    amt + gstAmount;
+  if (type === "add") {
+    baseAmount = amount;
+    gstAmount = amount * rate / 100;
+    totalAmount = amount + gstAmount;
+  } else {
+    totalAmount = amount;
+    baseAmount = amount * 100 / (100 + rate);
+    gstAmount = amount - baseAmount;
+  }
 
-  out(`
-    <b>GST Amount:</b> ₹${gstAmount.toFixed(2)}<br>
-    <b>Total Amount:</b> ₹${total.toFixed(2)}
-  `);
+  const money = value =>
+    "₹" + value.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+  result.hidden = false;
+  result.innerHTML = `
+    <h3>GST Summary</h3>
+
+    <div class="age-result-grid">
+      <div class="age-result-card">
+        <strong style="font-size:20px">${money(baseAmount)}</strong>
+        <span>Base Amount</span>
+      </div>
+
+      <div class="age-result-card">
+        <strong style="font-size:20px">${money(gstAmount)}</strong>
+        <span>GST (${rate}%)</span>
+      </div>
+
+      <div class="age-result-card">
+        <strong style="font-size:20px">${money(totalAmount)}</strong>
+        <span>${type === "add" ? "Final Amount" : "Amount Before GST"}</span>
+      </div>
+    </div>
+
+    <button onclick="copyGSTResult()">Copy Result</button>
+  `;
+}
+
+function resetGST() {
+  document.getElementById("gstAmount").value = "";
+  document.getElementById("gstRate").value = "18";
+  document.getElementById("gstType").value = "add";
+
+  const result = document.getElementById("gstResult");
+  result.hidden = true;
+  result.innerHTML = "";
+}
+
+function copyGSTResult() {
+  const result = document.getElementById("gstResult");
+  if (!result || result.hidden) return;
+
+  const text = result.innerText;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => alert("GST result copied!"))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
 }
 
 
