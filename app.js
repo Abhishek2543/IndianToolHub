@@ -288,58 +288,88 @@ function out(message) {
 // AGE CALCULATOR
 // =====================================================
 
+
 function calcAge() {
+  const input = document.getElementById("dob");
+  const result = document.getElementById("ageResult");
 
-  const value =
-    document.getElementById("dob").value;
-
-  if (!value) {
-    out("Please select your date of birth.");
+  if (!input.value) {
+    result.hidden = false;
+    result.innerHTML = "<p>Please select your date of birth.</p>";
     return;
   }
 
-  const dob = new Date(value);
+  const dob = new Date(input.value + "T00:00:00");
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  if (dob > today) {
-    out("Date of birth future में नहीं हो सकती।");
+  if (isNaN(dob.getTime()) || dob > today) {
+    result.hidden = false;
+    result.innerHTML = "<p>Please enter a valid date of birth.</p>";
     return;
   }
 
-  let years =
-    today.getFullYear() -
-    dob.getFullYear();
-
-  let months =
-    today.getMonth() -
-    dob.getMonth();
-
-  let days =
-    today.getDate() -
-    dob.getDate();
+  let years = today.getFullYear() - dob.getFullYear();
+  let months = today.getMonth() - dob.getMonth();
+  let days = today.getDate() - dob.getDate();
 
   if (days < 0) {
-
     months--;
-
-    days += new Date(
+    const daysInPreviousMonth = new Date(
       today.getFullYear(),
       today.getMonth(),
       0
     ).getDate();
+    days += daysInPreviousMonth;
   }
 
   if (months < 0) {
-
     years--;
-
     months += 12;
   }
 
-  out(
-    `<b>Age: ${years} years, ${months} months, ${days} days</b>`
-  );
+  result.hidden = false;
+  result.innerHTML = `
+    <h3>Your Exact Age</h3>
+    <div class="age-result-grid">
+      <div class="age-result-card">
+        <strong>${years}</strong>
+        <span>Years</span>
+      </div>
+      <div class="age-result-card">
+        <strong>${months}</strong>
+        <span>Months</span>
+      </div>
+      <div class="age-result-card">
+        <strong>${days}</strong>
+        <span>Days</span>
+      </div>
+    </div>
+    <p class="age-note">Age calculated as of today.</p>
+    <button onclick="copyAgeResult()">Copy Result</button>
+  `;
 }
+
+function resetAge() {
+  document.getElementById("dob").value = "";
+  const result = document.getElementById("ageResult");
+  result.hidden = true;
+  result.innerHTML = "";
+}
+
+function copyAgeResult() {
+  const result = document.getElementById("ageResult");
+  const text = result.querySelector(".age-result-grid").innerText;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => out("Age result copied! ✅"))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
 
 
 // =====================================================
