@@ -95,7 +95,6 @@ else if (type === "emi") {
 
   else if (type === "gst") {
 
-else if (type === "gst") {
   content.innerHTML = `
     <div class="pro-tool">
       <div class="pro-tool-icon">🧾</div>
